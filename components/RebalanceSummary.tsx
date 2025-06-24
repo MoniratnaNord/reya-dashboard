@@ -109,7 +109,7 @@ export function RebalanceSummary() {
 	// cleaned inception data:
 	const { end_at, ...cleanedInceptionData } =
 		!inceptionError &&
-		!hedgeLoading &&
+		!inceptionLoading &&
 		inceptionPnl.data !== null &&
 		inceptionPnl.data !== undefined &&
 		inceptionPnl.data;
