@@ -57,17 +57,17 @@ export function TablePage() {
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [currentPage, setCurrentPage] = useState(1);
 	const rowsPerPage = 10; // you can make this dynamic if needed
-	const { data, isLoading, isError } = useHedgingPosition(
+	const { data, isLoading, isError, error } = useHedgingPosition(
 		(currentPage - 1) * 10
 	);
-	if (isError) {
+	if (isError && (error as any).status === 401) {
 		signout();
 	}
-	console.log("checking hedge position data", data);
+
 	const paginatedData = useMemo(() => {
 		// const end = start + rowsPerPage;
 		if (isLoading || !data.data) return [];
-
+		if (data.data.length === 0) return [];
 		return data.data.map(
 			({
 				amm_base,
@@ -80,7 +80,7 @@ export function TablePage() {
 				...rest
 			}: any) => {
 				const formattedRest = { ...rest };
-				console.log("check rest", formattedRest);
+
 				if (formattedRest.reya_funding_rate !== undefined) {
 					const val = formattedRest.reya_funding_rate;
 					formattedRest.reya_funding_rate = Number(val).toFixed(4);
@@ -95,7 +95,7 @@ export function TablePage() {
 
 		// return !isLoading && data.data;
 	}, [data, isLoading]);
-	console.log("check paginated data", paginatedData);
+
 	const handleSort = (field: keyof SalesData) => {
 		if (sortField === field) {
 			setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -105,7 +105,6 @@ export function TablePage() {
 		}
 	};
 
-	console.log("check data", data);
 	return (
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
@@ -159,46 +158,50 @@ export function TablePage() {
 						<div className="rounded-md border overflow-hidden">
 							<Table>
 								<TableHeader className="bg-gray-50/50">
-									<TableRow>
-										{!isLoading &&
-											Object.keys(paginatedData[0]).map((key) => (
-												<TableHead
-													key={key}
-													className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
-													onClick={() => handleSort("customer")}
-												>
-													<div className="flex items-center">
-														{key}
-														<ArrowUpDown className="ml-2 h-4 w-4" />
-													</div>
-												</TableHead>
-											))}
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{!isLoading &&
-										paginatedData.map((item: any) => (
-											<TableRow
-												key={item.id}
-												className="hover:bg-gray-50/50 transition-colors"
-											>
-												{Object.keys(paginatedData[0]).map((key, index) => (
-													<TableCell
-														className="text-gray-600 text-xs"
-														key={index}
+									{paginatedData.length === 0 ? null : (
+										<TableRow>
+											{!isLoading &&
+												Object.keys(paginatedData[0]).map((key) => (
+													<TableHead
+														key={key}
+														className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
+														onClick={() => handleSort("customer")}
 													>
-														{item[key] === true
-															? "true"
-															: item[key] === false
-															? "false"
-															: item[key] === null
-															? "null"
-															: item[key]}
-													</TableCell>
+														<div className="flex items-center">
+															{key}
+															<ArrowUpDown className="ml-2 h-4 w-4" />
+														</div>
+													</TableHead>
 												))}
-											</TableRow>
-										))}
-								</TableBody>
+										</TableRow>
+									)}
+								</TableHeader>
+								{paginatedData.length === 0 ? null : (
+									<TableBody>
+										{!isLoading &&
+											paginatedData.map((item: any) => (
+												<TableRow
+													key={item.id}
+													className="hover:bg-gray-50/50 transition-colors"
+												>
+													{Object.keys(paginatedData[0]).map((key, index) => (
+														<TableCell
+															className="text-gray-600 text-xs"
+															key={index}
+														>
+															{item[key] === true
+																? "true"
+																: item[key] === false
+																? "false"
+																: item[key] === null
+																? "null"
+																: item[key]}
+														</TableCell>
+													))}
+												</TableRow>
+											))}
+									</TableBody>
+								)}
 							</Table>
 							{!isLoading && data.data.length === 0 && (
 								<div className="text-center py-8 text-gray-500">

@@ -58,19 +58,18 @@ export function AmmUniqueTablePage() {
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [currentPage, setCurrentPage] = useState(1);
 	const rowsPerPage = 10; // you can make this dynamic if needed
-	const { data, isLoading, isError } = useAmmUniquePosition(
+	const { data, isLoading, isError, error } = useAmmUniquePosition(
 		(currentPage - 1) * 10
 	);
-	if (isError) {
+	if (isError && (error as any).status === 401) {
 		signout();
 	}
 	const newPaginatedData = useMemo(() => {
 		if (isLoading || !data.data) return [];
+		if (data.data.length === 0) return [];
 		return data.data.map(
 			({ amm_base, amm_realized_pnl, amm_last_price, ...rest }: any) => {
 				const formattedRest = { ...rest };
-				console.log("check rest", formattedRest);
-
 				if (
 					formattedRest.created_at !== undefined ||
 					formattedRest.amm_last_timestamp !== undefined
@@ -86,12 +85,7 @@ export function AmmUniqueTablePage() {
 			}
 		);
 	}, [data, isLoading]);
-	console.log("Check data", newPaginatedData);
-	// !isLoading &&
-	// 	newPaginatedData.map(
-	// 		({ amm_base, amm_realized_pnl, amm_last_price, ...rest }: any) => rest
-	// 	);
-	console.log("check dadur bichi", newPaginatedData);
+
 	const handleSort = (field: keyof SalesData) => {
 		if (sortField === field) {
 			setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -101,8 +95,6 @@ export function AmmUniqueTablePage() {
 		}
 	};
 	const formatValue = (value: any) => {
-		console.log("I am triggeered");
-		console.log("checking vlaue in amm unique", value);
 		if (value === null || value === undefined) return "—";
 
 		// if it's boolean
@@ -184,49 +176,53 @@ export function AmmUniqueTablePage() {
 						<div className="rounded-md border overflow-hidden">
 							<Table>
 								<TableHeader className="bg-gray-50/50">
-									<TableRow>
-										{!isLoading &&
-											Object.keys(newPaginatedData[0]).map((key, index) => (
-												<TableHead
-													key={index}
-													className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
-													onClick={() => handleSort("customer")}
-												>
-													<div className="flex items-center">
-														{key}
-														<ArrowUpDown className="ml-2 h-4 w-4" />
-													</div>
-												</TableHead>
-											))}
-									</TableRow>
+									{newPaginatedData.length === 0 ? null : (
+										<TableRow>
+											{!isLoading &&
+												Object.keys(newPaginatedData[0]).map((key, index) => (
+													<TableHead
+														key={index}
+														className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
+														onClick={() => handleSort("customer")}
+													>
+														<div className="flex items-center">
+															{key}
+															<ArrowUpDown className="ml-2 h-4 w-4" />
+														</div>
+													</TableHead>
+												))}
+										</TableRow>
+									)}
 								</TableHeader>
-								<TableBody>
-									{!isLoading &&
-										newPaginatedData.map((item: any, index: any) => (
-											<TableRow
-												key={index}
-												className="hover:bg-gray-50/50 transition-colors"
-											>
-												{Object.keys(newPaginatedData[0] || {}).map(
-													(key, index) => (
-														<TableCell
-															className="text-gray-600 text-xs"
-															key={index}
-														>
-															{/* {item[key] === true
+								{newPaginatedData.length === 0 ? null : (
+									<TableBody>
+										{!isLoading &&
+											newPaginatedData.map((item: any, index: any) => (
+												<TableRow
+													key={index}
+													className="hover:bg-gray-50/50 transition-colors"
+												>
+													{Object.keys(newPaginatedData[0] || {}).map(
+														(key, index) => (
+															<TableCell
+																className="text-gray-600 text-xs"
+																key={index}
+															>
+																{/* {item[key] === true
 															? "true"
 															: item[key] === false
 															? "false"
 															: item[key] === null
 															? "null"
 															: formatValue(item[key])} */}
-															{formatValue(item[key])}
-														</TableCell>
-													)
-												)}
-											</TableRow>
-										))}
-								</TableBody>
+																{formatValue(item[key])}
+															</TableCell>
+														)
+													)}
+												</TableRow>
+											))}
+									</TableBody>
+								)}
 							</Table>
 							{!isLoading && data.data.length === 0 && (
 								<div className="text-center py-8 text-gray-500">

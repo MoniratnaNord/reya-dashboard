@@ -23,6 +23,7 @@ import { useCurrentAmm } from "@/hooks/useCurrentAmm";
 import { useHedgePnl } from "@/hooks/useHedgePnl";
 import { useInceptionPnl } from "@/hooks/useInceptionPnl";
 import { useAuth } from "@/contexts/AuthContext";
+import { Alert } from "./ui/alert";
 
 interface RebalanceData {
 	platform: string;
@@ -40,22 +41,32 @@ export function RebalanceSummary() {
 	const {
 		data: ammPosition,
 		isLoading: ammLoading,
-		isError: ammError,
+		isError: isAmmError,
+		error: ammError,
 	} = useCurrentAmm();
 	const {
 		data: hedgePnl,
 		isLoading: hedgeLoading,
-		isError: hedgeError,
+		isError: isHedgeError,
+		error: hedgeError,
 	} = useHedgePnl();
 	const {
 		data: inceptionPnl,
 		isLoading: inceptionLoading,
-		isError: inceptionError,
+		isError: isInceptionError,
+		error: inceptionError,
 	} = useInceptionPnl();
-
-	if (ammError || hedgeError || inceptionError) {
-		signout();
+	if (isAmmError || isHedgeError || isInceptionError) {
+		if (
+			(ammError !== null && (ammError as any).status === 401) ||
+			(hedgeError !== null && (hedgeError as any).status === 401) ||
+			(inceptionError !== null && (inceptionError as any).status === 401)
+		) {
+			window.alert("Session expired. Please log in again.");
+			signout();
+		}
 	}
+
 	const {
 		amm_trackers,
 		hedge_pnl,
@@ -87,7 +98,6 @@ export function RebalanceSummary() {
 		current_price: hl_current_price, // renamed key
 		unrealized_pnl: unrealized_pnl_by_entries,
 	};
-	console.log("checking cleaned data", cleanedAmmData);
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case "active":
@@ -116,8 +126,6 @@ export function RebalanceSummary() {
 		title?: string;
 	}) => {
 		const formatValue = (value: any) => {
-			console.log("checking values", value);
-
 			const isNumericString =
 				typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value);
 
@@ -209,9 +217,9 @@ export function RebalanceSummary() {
 					</SelectContent>
 				</Select>
 			</div> */}
-			{!ammError &&
-			!inceptionError &&
-			!hedgeError &&
+			{!isAmmError &&
+			!isHedgeError &&
+			!isInceptionError &&
 			!ammLoading &&
 			!inceptionLoading &&
 			!hedgeLoading ? (
@@ -291,10 +299,15 @@ export function RebalanceSummary() {
 						<RenderObject data={!inceptionLoading && inceptionPnl.data} />
 					)}
 				</div>
+			) : (ammError !== null && (ammError as any).status === 401) ||
+			  (hedgeError !== null && (hedgeError as any).status === 401) ||
+			  (inceptionError !== null && (inceptionError as any).status === 401) ? (
+				<div className="flex items-center justify-center">
+					Session expired. Please login again.
+				</div>
 			) : (
 				<div className="flex items-center justify-center">
-					<Loader2 className="animate-spin mr-2" />
-					Loading...
+					Data not yet available.
 				</div>
 			)}
 		</div>

@@ -62,8 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	const signout = () => {
-		console.log("trigger signout");
 		setUser("");
+		localStorage.clear();
 		localStorage.removeItem("accesss_token");
 	};
 
