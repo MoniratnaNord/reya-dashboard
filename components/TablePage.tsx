@@ -67,6 +67,7 @@ export function TablePage() {
 	const paginatedData = useMemo(() => {
 		// const end = start + rowsPerPage;
 		if (isLoading || !data.data) return [];
+
 		return data.data.map(
 			({
 				amm_base,

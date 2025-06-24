@@ -52,15 +52,7 @@ export function RebalanceSummary() {
 		isLoading: inceptionLoading,
 		isError: inceptionError,
 	} = useInceptionPnl();
-	console.log(
-		"checking data data data:\n",
-		ammPosition,
-		hedgePnl,
-		inceptionPnl,
-		ammError,
-		hedgeError,
-		inceptionError
-	);
+
 	if (ammError || hedgeError || inceptionError) {
 		signout();
 	}
@@ -75,9 +67,18 @@ export function RebalanceSummary() {
 		amm_last_price,
 		amm_base,
 		...cleanedAmmData
-	} = !ammError && !ammLoading && ammPosition.data;
+	} =
+		!ammError &&
+		!ammLoading &&
+		ammPosition.data !== null &&
+		ammPosition.data !== undefined &&
+		ammPosition.data;
 	const { hyperliquid_last_ticker, amm_current_price, ...cleanedHedgeData } =
-		!hedgeError && !hedgeLoading && hedgePnl.data;
+		!hedgeError &&
+		!hedgeLoading &&
+		hedgePnl.data !== null &&
+		hedgePnl.data !== undefined &&
+		hedgePnl.data;
 	const { hl_current_price, unrealized_pnl_by_entries, ...remaining } =
 		cleanedHedgeData;
 
@@ -218,48 +219,77 @@ export function RebalanceSummary() {
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Summary
 					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-						<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
-							<div className="text-sm text-gray-600">Total Realized PNL</div>
-							<div className="text-base font-semibold text-gray-900">
-								{!inceptionError &&
-									!hedgeError &&
-									!inceptionLoading &&
-									!hedgeLoading &&
-									(
-										Number(inceptionPnl.data.realized_pnl) +
-										Number(cleanedHedgeDataWithRenamedKey.realized_pnl_all_time)
-									).toFixed(4)}
-							</div>
-						</Card>
-						<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
-							<div className="text-sm text-gray-600">Total Unrealized PNL</div>
-							<div className="text-base font-semibold text-gray-900">
-								{!inceptionError &&
-									!hedgeError &&
-									!inceptionLoading &&
-									!hedgeLoading &&
-									(
-										Number(inceptionPnl.data.unrealized_pnl) +
-										Number(cleanedHedgeDataWithRenamedKey.unrealized_pnl)
-									).toFixed(4)}
-							</div>
-						</Card>
-					</div>
+					{inceptionPnl.data === null || inceptionPnl.data === undefined ? (
+						<div className="flex items-center justify-center">
+							<Loader2 className="animate-spin mr-2" />
+							Data not available yet.
+						</div>
+					) : (
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Total Realized PNL</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!inceptionError &&
+										!hedgeError &&
+										!inceptionLoading &&
+										!hedgeLoading &&
+										(
+											Number(inceptionPnl.data.realized_pnl) +
+											Number(
+												cleanedHedgeDataWithRenamedKey.realized_pnl_all_time
+											)
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Unrealized PNL
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!inceptionError &&
+										!hedgeError &&
+										!inceptionLoading &&
+										!hedgeLoading &&
+										(
+											Number(inceptionPnl.data.unrealized_pnl) +
+											Number(cleanedHedgeDataWithRenamedKey.unrealized_pnl)
+										).toFixed(4)}
+								</div>
+							</Card>
+						</div>
+					)}
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Current AMM Positions
 					</h2>
-					<RenderObject data={!ammLoading && cleanedAmmData} />
+					{ammPosition.data === null || ammPosition.data === undefined ? (
+						<div className="flex items-center justify-center">
+							Data not available yet.
+						</div>
+					) : (
+						<RenderObject data={!ammLoading && cleanedAmmData} />
+					)}
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Hedge PNL
 					</h2>
-					<RenderObject
-						data={!hedgeLoading && cleanedHedgeDataWithRenamedKey}
-					/>
+					{hedgePnl.data === null || hedgePnl.data === undefined ? (
+						<div className="flex items-center justify-center">
+							Data not available yet.
+						</div>
+					) : (
+						<RenderObject
+							data={!hedgeLoading && cleanedHedgeDataWithRenamedKey}
+						/>
+					)}
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						AMM PNL Since Inception
 					</h2>
-					<RenderObject data={!inceptionLoading && inceptionPnl.data} />
+					{inceptionPnl.data === null || inceptionPnl.data === undefined ? (
+						<div className="flex items-center justify-center">
+							Data not available yet.
+						</div>
+					) : (
+						<RenderObject data={!inceptionLoading && inceptionPnl.data} />
+					)}
 				</div>
 			) : (
 				<div className="flex items-center justify-center">
