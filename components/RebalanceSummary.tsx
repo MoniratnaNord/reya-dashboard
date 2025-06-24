@@ -62,7 +62,7 @@ export function RebalanceSummary() {
 		isLoading: marketLoading,
 		isError: marketError,
 	} = useMarketList();
-	console.log("checking refetch:", hedgePnl.data);
+
 	if (isAmmError || isHedgeError || isInceptionError) {
 		if (
 			(ammError !== null && (ammError as any).status === 401) ||
