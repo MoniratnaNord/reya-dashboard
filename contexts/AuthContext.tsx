@@ -41,7 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			headers: {
 				"Content-Type": "application/json",
 			},
-			credentials: "include",
 			body: JSON.stringify({
 				user_id: email,
 				password,
