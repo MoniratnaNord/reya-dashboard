@@ -97,3 +97,15 @@ export const ammUniquePositions = async (
 	}
 	return res.data;
 };
+export const marketList = async (token: string, signOut: () => void) => {
+	const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/market`, {
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+	});
+	if (res.status === 401) {
+		signOut();
+	}
+	return res.data;
+};

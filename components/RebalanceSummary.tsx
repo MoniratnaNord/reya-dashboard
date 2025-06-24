@@ -24,6 +24,7 @@ import { useHedgePnl } from "@/hooks/useHedgePnl";
 import { useInceptionPnl } from "@/hooks/useInceptionPnl";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert } from "./ui/alert";
+import { useMarketList } from "@/hooks/useMarketList";
 
 interface RebalanceData {
 	platform: string;
@@ -56,6 +57,12 @@ export function RebalanceSummary() {
 		isError: isInceptionError,
 		error: inceptionError,
 	} = useInceptionPnl();
+	const {
+		data: marketData,
+		isLoading: marketLoading,
+		isError: marketError,
+	} = useMarketList();
+	console.log("checking refetch:", hedgePnl.data);
 	if (isAmmError || isHedgeError || isInceptionError) {
 		if (
 			(ammError !== null && (ammError as any).status === 401) ||
@@ -98,6 +105,14 @@ export function RebalanceSummary() {
 		current_price: hl_current_price, // renamed key
 		unrealized_pnl: unrealized_pnl_by_entries,
 	};
+
+	// cleaned inception data:
+	const { end_at, ...cleanedInceptionData } =
+		!inceptionError &&
+		!hedgeLoading &&
+		inceptionPnl.data !== null &&
+		inceptionPnl.data !== undefined &&
+		inceptionPnl.data;
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case "active":
@@ -168,7 +183,7 @@ export function RebalanceSummary() {
 				)}
 
 				{/* Flat values as rows */}
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
 					{flatEntries.map(([key, value]) => (
 						<>
 							{key.toLowerCase().includes("id") || key === "id" ? null : (
@@ -178,12 +193,12 @@ export function RebalanceSummary() {
 										className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4"
 									>
 										<div className="text-sm text-gray-600">{key}</div>
-										<div className="text-base font-semibold text-gray-900">
+										<div className="text-sm font-semibold text-gray-900">
 											{key.toLowerCase().includes("timestamp") ||
 											key === "created_at" ||
 											key === "start_at" ||
 											key === "end_at"
-												? new Date(value).toLocaleString().split(",")[0]
+												? new Date(value).toLocaleString()
 												: formatValue(value)}
 										</div>
 									</Card>
@@ -233,7 +248,7 @@ export function RebalanceSummary() {
 							Data not available yet.
 						</div>
 					) : (
-						<div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">Total Realized PNL</div>
 								<div className="text-base font-semibold text-gray-900">
@@ -262,6 +277,16 @@ export function RebalanceSummary() {
 											Number(inceptionPnl.data.unrealized_pnl) +
 											Number(cleanedHedgeDataWithRenamedKey.unrealized_pnl)
 										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Investment Cap
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!marketError &&
+										!marketLoading &&
+										marketData.data[0].reya.hedgeTotalInvestmentCap}
 								</div>
 							</Card>
 						</div>
@@ -296,7 +321,7 @@ export function RebalanceSummary() {
 							Data not available yet.
 						</div>
 					) : (
-						<RenderObject data={!inceptionLoading && inceptionPnl.data} />
+						<RenderObject data={!inceptionLoading && cleanedInceptionData} />
 					)}
 				</div>
 			) : (ammError !== null && (ammError as any).status === 401) ||

@@ -7,5 +7,7 @@ export const useCurrentAmm = () => {
 	return useQuery({
 		queryKey: ["getCurrentAmm"],
 		queryFn: () => getCurrentAmmPositions(0, user || "", signout),
+		refetchInterval: 30000,
+		refetchIntervalInBackground: true,
 	});
 };

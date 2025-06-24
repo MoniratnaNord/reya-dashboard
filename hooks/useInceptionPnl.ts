@@ -7,5 +7,7 @@ export const useInceptionPnl = () => {
 	return useQuery({
 		queryKey: ["useInceptionPnl"],
 		queryFn: () => pnlSinceInception(0, user || "", signout),
+		refetchInterval: 30000,
+		refetchIntervalInBackground: true,
 	});
 };
