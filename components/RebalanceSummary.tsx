@@ -141,7 +141,7 @@ export function RebalanceSummary() {
 					? Number(BigInt(wholePart) / BigInt(1e18))
 					: Number(value);
 
-				return finalValue.toFixed(2);
+				return finalValue.toFixed(4);
 			}
 
 			// If not number or numeric string, return as is
