@@ -38,9 +38,6 @@ import { MarketData } from "./MarketData";
 import { useHedgingPosition } from "@/hooks/useHedgingPosition";
 import { useAmmUniquePosition } from "@/hooks/useAmmUniquePosition";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-
-dayjs.extend(utc);
 
 interface SalesData {
 	id: string;
@@ -214,10 +211,9 @@ export function AmmUniqueTablePage() {
 															>
 																{key === "created_at" ||
 																key === "amm_last_timestamp"
-																	? dayjs
-																			.utc(item[key])
-																			.local()
-																			.format("YYYY-MM-DD HH:mm:ss")
+																	? dayjs(item[key]).format(
+																			"YYYY-MM-DD HH:mm:ss"
+																	  )
 																	: formatValue(item[key])}
 															</TableCell>
 														)

@@ -22,9 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Search, Filter, ArrowUpDown, ChevronDown } from "lucide-react";
 import { useHedgingPosition } from "@/hooks/useHedgingPosition";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 
-dayjs.extend(utc);
 interface SalesData {
 	id: string;
 	customer: string;
@@ -195,10 +193,7 @@ export function TablePage() {
 																: item[key] === null
 																? "null"
 																: key === "created_at"
-																? dayjs
-																		.utc(item[key])
-																		.local()
-																		.format("YYYY-MM-DD HH:mm:ss")
+																? dayjs(item[key]).format("YYYY-MM-DD HH:mm:ss")
 																: item[key]}
 														</TableCell>
 													))}
