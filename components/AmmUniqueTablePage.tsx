@@ -123,6 +123,20 @@ export function AmmUniqueTablePage() {
 		// fallback
 		return value;
 	};
+	function formatDateTime(dateInput: string) {
+		const date = new Date(dateInput);
+
+		const pad = (n: any) => n.toString().padStart(2, "0");
+
+		const year = date.getFullYear();
+		const month = pad(date.getMonth() + 1); // Months are zero-based
+		const day = pad(date.getDate());
+		const hours = pad(date.getHours());
+		const minutes = pad(date.getMinutes());
+		const seconds = pad(date.getSeconds());
+
+		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+	}
 	console.log(newPaginatedData[0]);
 	return (
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -211,9 +225,7 @@ export function AmmUniqueTablePage() {
 															>
 																{key === "created_at" ||
 																key === "amm_last_timestamp"
-																	? dayjs(item[key]).format(
-																			"YYYY-MM-DD HH:mm:ss"
-																	  )
+																	? formatDateTime(item[key])
 																	: formatValue(item[key])}
 															</TableCell>
 														)
