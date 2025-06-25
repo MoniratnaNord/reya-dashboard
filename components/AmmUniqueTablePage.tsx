@@ -37,6 +37,10 @@ import { RebalanceSummary } from "./RebalanceSummary";
 import { MarketData } from "./MarketData";
 import { useHedgingPosition } from "@/hooks/useHedgingPosition";
 import { useAmmUniquePosition } from "@/hooks/useAmmUniquePosition";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 interface SalesData {
 	id: string;
@@ -131,7 +135,7 @@ export function AmmUniqueTablePage() {
 					<CardHeader>
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<CardTitle className="text-lg font-semibold text-gray-900">
-								Recent Sales
+								Amm Position
 							</CardTitle>
 							<div className="flex flex-col sm:flex-row gap-3">
 								<div className="relative">
@@ -208,14 +212,12 @@ export function AmmUniqueTablePage() {
 																className="text-gray-600 text-xs"
 																key={index}
 															>
-																{/* {item[key] === true
-															? "true"
-															: item[key] === false
-															? "false"
-															: item[key] === null
-															? "null"
-															: formatValue(item[key])} */}
-																{formatValue(item[key])}
+																{key === "amm_last_timestamp" || "created_at"
+																	? dayjs
+																			.utc(item[key])
+																			.local()
+																			.format("YYYY-MM-DD HH:mm:ss")
+																	: formatValue(item[key])}
 															</TableCell>
 														)
 													)}

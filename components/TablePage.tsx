@@ -36,7 +36,10 @@ import { Sidebar } from "./Sidebar";
 import { RebalanceSummary } from "./RebalanceSummary";
 import { MarketData } from "./MarketData";
 import { useHedgingPosition } from "@/hooks/useHedgingPosition";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
+dayjs.extend(utc);
 interface SalesData {
 	id: string;
 	customer: string;
@@ -96,6 +99,17 @@ export function TablePage() {
 		// return !isLoading && data.data;
 	}, [data, isLoading]);
 
+	const formattedData = paginatedData.map((item: any) => ({
+		amm_position_size: item.amm_position_size,
+		hedge_position_size: item.hedge_position_size,
+		is_buy: item.is_buy,
+		market_price: item.market_price,
+		avg_price: item.avg_price,
+		reya_funding_rate: item.reya_funding_rate,
+		hl_funding_rate: item.hl_funding_rate,
+		order_id: item.order_id,
+		created_at: item.created_at,
+	}));
 	const handleSort = (field: keyof SalesData) => {
 		if (sortField === field) {
 			setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -113,7 +127,7 @@ export function TablePage() {
 					<CardHeader>
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<CardTitle className="text-lg font-semibold text-gray-900">
-								Recent Sales
+								Hedge Position
 							</CardTitle>
 							<div className="flex flex-col sm:flex-row gap-3">
 								<div className="relative">
@@ -161,7 +175,7 @@ export function TablePage() {
 									{paginatedData.length === 0 ? null : (
 										<TableRow>
 											{!isLoading &&
-												Object.keys(paginatedData[0]).map((key) => (
+												Object.keys(formattedData[0]).map((key) => (
 													<TableHead
 														key={key}
 														className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
@@ -179,22 +193,27 @@ export function TablePage() {
 								{paginatedData.length === 0 ? null : (
 									<TableBody>
 										{!isLoading &&
-											paginatedData.map((item: any) => (
+											formattedData.map((item: any) => (
 												<TableRow
 													key={item.id}
 													className="hover:bg-gray-50/50 transition-colors"
 												>
-													{Object.keys(paginatedData[0]).map((key, index) => (
+													{Object.keys(formattedData[0]).map((key, index) => (
 														<TableCell
 															className="text-gray-600 text-xs"
 															key={index}
 														>
 															{item[key] === true
-																? "true"
+																? "LONG"
 																: item[key] === false
-																? "false"
+																? "SHORT"
 																: item[key] === null
 																? "null"
+																: key === "created_at"
+																? dayjs
+																		.utc(item[key])
+																		.local()
+																		.format("YYYY-MM-DD HH:mm:ss")
 																: item[key]}
 														</TableCell>
 													))}
