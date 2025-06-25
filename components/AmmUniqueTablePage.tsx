@@ -126,7 +126,7 @@ export function AmmUniqueTablePage() {
 		// fallback
 		return value;
 	};
-
+	console.log(newPaginatedData[0]);
 	return (
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
@@ -212,7 +212,13 @@ export function AmmUniqueTablePage() {
 																className="text-gray-600 text-xs"
 																key={index}
 															>
-																{formatValue(item[key])}
+																{key === "created_at" ||
+																key === "amm_last_timestamp"
+																	? dayjs
+																			.utc(item[key])
+																			.local()
+																			.format("YYYY-MM-DD HH:mm:ss")
+																	: formatValue(item[key])}
 															</TableCell>
 														)
 													)}

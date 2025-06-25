@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -19,22 +18,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-	LogOut,
-	Search,
-	Filter,
-	Users,
-	TrendingUp,
-	DollarSign,
-	ShoppingCart,
-	ArrowUpDown,
-	ChevronDown,
-} from "lucide-react";
-import { Sidebar } from "./Sidebar";
-import { RebalanceSummary } from "./RebalanceSummary";
-import { MarketData } from "./MarketData";
+import { Search, Filter, ArrowUpDown, ChevronDown } from "lucide-react";
 import { useHedgingPosition } from "@/hooks/useHedgingPosition";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -59,7 +44,7 @@ export function TablePage() {
 	const [sortField, setSortField] = useState<keyof SalesData>("date");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [currentPage, setCurrentPage] = useState(1);
-	const rowsPerPage = 10; // you can make this dynamic if needed
+	const rowsPerPage = 10;
 	const { data, isLoading, isError, error } = useHedgingPosition(
 		(currentPage - 1) * 10
 	);
