@@ -205,8 +205,6 @@ export function TablePage() {
 																? "SHORT"
 																: item[key] === null
 																? "null"
-																: key === "created_at"
-																? formatDateTime(item[key])
 																: item[key]}
 														</TableCell>
 													))}

@@ -223,10 +223,7 @@ export function AmmUniqueTablePage() {
 																className="text-gray-600 text-xs"
 																key={index}
 															>
-																{key === "created_at" ||
-																key === "amm_last_timestamp"
-																	? formatDateTime(item[key])
-																	: formatValue(item[key])}
+																{formatValue(item[key])}
 															</TableCell>
 														)
 													)}
