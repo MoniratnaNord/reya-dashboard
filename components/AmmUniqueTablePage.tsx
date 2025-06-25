@@ -212,12 +212,7 @@ export function AmmUniqueTablePage() {
 																className="text-gray-600 text-xs"
 																key={index}
 															>
-																{key === "amm_last_timestamp" || "created_at"
-																	? dayjs
-																			.utc(item[key])
-																			.local()
-																			.format("YYYY-MM-DD HH:mm:ss")
-																	: formatValue(item[key])}
+																{formatValue(item[key])}
 															</TableCell>
 														)
 													)}
