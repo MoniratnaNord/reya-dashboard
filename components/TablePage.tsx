@@ -127,15 +127,9 @@ export function TablePage() {
 							</CardTitle>
 							<div className="flex flex-col sm:flex-row gap-3">
 								<div className="relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-									<Input
-										placeholder="Search customers..."
-										value={searchTerm}
-										onChange={(e) => setSearchTerm(e.target.value)}
-										className="pl-10 w-full sm:w-64"
-									/>
+									Rows Count: {!isLoading && data.row_count}
 								</div>
-								<Select value={statusFilter} onValueChange={setStatusFilter}>
+								{/* <Select value={statusFilter} onValueChange={setStatusFilter}>
 									<SelectTrigger className="w-full sm:w-32">
 										<Filter className="w-4 h-4 mr-2" />
 										<SelectValue placeholder="Status" />
@@ -160,7 +154,7 @@ export function TablePage() {
 										<SelectItem value="Subscription">Subscription</SelectItem>
 										<SelectItem value="Service">Service</SelectItem>
 									</SelectContent>
-								</Select>
+								</Select> */}
 							</div>
 						</div>
 					</CardHeader>

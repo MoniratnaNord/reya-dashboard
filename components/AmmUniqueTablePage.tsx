@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -19,25 +18,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-	LogOut,
-	Search,
-	Filter,
-	Users,
-	TrendingUp,
-	DollarSign,
-	ShoppingCart,
-	ArrowUpDown,
-	ChevronDown,
-} from "lucide-react";
-import { Sidebar } from "./Sidebar";
-import { RebalanceSummary } from "./RebalanceSummary";
-import { MarketData } from "./MarketData";
-import { useHedgingPosition } from "@/hooks/useHedgingPosition";
+import { Search, Filter, ArrowUpDown, ChevronDown } from "lucide-react";
 import { useAmmUniquePosition } from "@/hooks/useAmmUniquePosition";
-import dayjs from "dayjs";
 
 interface SalesData {
 	id: string;
@@ -150,40 +133,10 @@ export function AmmUniqueTablePage() {
 							</CardTitle>
 							<div className="flex flex-col sm:flex-row gap-3">
 								<div className="relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-									<Input
-										placeholder="Search customers..."
-										value={searchTerm}
-										onChange={(e) => setSearchTerm(e.target.value)}
-										className="pl-10 w-full sm:w-64"
-									/>
+									Rows Count: {!isLoading && data.row_count}
 								</div>
-								<Select value={statusFilter} onValueChange={setStatusFilter}>
-									<SelectTrigger className="w-full sm:w-32">
-										<Filter className="w-4 h-4 mr-2" />
-										<SelectValue placeholder="Status" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Status</SelectItem>
-										<SelectItem value="completed">Completed</SelectItem>
-										<SelectItem value="pending">Pending</SelectItem>
-										<SelectItem value="cancelled">Cancelled</SelectItem>
-									</SelectContent>
-								</Select>
-								<Select
-									value={categoryFilter}
-									onValueChange={setCategoryFilter}
-								>
-									<SelectTrigger className="w-full sm:w-36">
-										<ChevronDown className="w-4 h-4 mr-2" />
-										<SelectValue placeholder="Category" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Categories</SelectItem>
-										<SelectItem value="Subscription">Subscription</SelectItem>
-										<SelectItem value="Service">Service</SelectItem>
-									</SelectContent>
-								</Select>
+								<div>Limit: {!isLoading && data.limit}</div>
+								<div>Limit Crossed: {!isLoading && data.limit_crossed}</div>
 							</div>
 						</div>
 					</CardHeader>
