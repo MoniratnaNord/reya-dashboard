@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -33,7 +33,11 @@ interface SalesData {
 	category: string;
 }
 
-export function AmmUniqueTablePage() {
+export function AmmUniqueTablePage({
+	selectedIndex,
+}: {
+	selectedIndex: number;
+}) {
 	const { user, signout } = useAuth();
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
@@ -42,9 +46,14 @@ export function AmmUniqueTablePage() {
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [currentPage, setCurrentPage] = useState(1);
 	const rowsPerPage = 10; // you can make this dynamic if needed
-	const { data, isLoading, isError, error } = useAmmUniquePosition(
+	const { data, isLoading, isError, error, refetch } = useAmmUniquePosition(
+		selectedIndex,
 		(currentPage - 1) * 10
 	);
+	useEffect(() => {
+		refetch();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedIndex]);
 	if (isError && (error as any).status === 401) {
 		signout();
 	}

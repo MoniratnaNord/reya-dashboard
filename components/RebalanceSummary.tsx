@@ -36,44 +36,55 @@ interface RebalanceData {
 	status: "active" | "pending" | "completed";
 }
 
-export function RebalanceSummary() {
-	const [selectedPlatform, setSelectedPlatform] = useState<string>("");
+export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 	const { signout } = useAuth();
 	const {
 		data: ammPosition,
 		isLoading: ammLoading,
 		isError: isAmmError,
 		error: ammError,
-	} = useCurrentAmm();
+		refetch: refetchAmm,
+	} = useCurrentAmm(selectedIndex);
 	const {
 		data: hedgePnl,
 		isLoading: hedgeLoading,
 		isError: isHedgeError,
 		error: hedgeError,
-	} = useHedgePnl();
+		refetch: refetchHedge,
+	} = useHedgePnl(selectedIndex);
 	const {
 		data: inceptionPnl,
 		isLoading: inceptionLoading,
 		isError: isInceptionError,
 		error: inceptionError,
-	} = useInceptionPnl();
+		refetch: refetchInception,
+	} = useInceptionPnl(selectedIndex);
 	const {
 		data: marketData,
 		isLoading: marketLoading,
 		isError: marketError,
 	} = useMarketList();
 
-	if (isAmmError || isHedgeError || isInceptionError) {
+	if (isAmmError || isHedgeError || isInceptionError || marketError) {
 		if (
 			(ammError !== null && (ammError as any).status === 401) ||
 			(hedgeError !== null && (hedgeError as any).status === 401) ||
-			(inceptionError !== null && (inceptionError as any).status === 401)
+			(inceptionError !== null && (inceptionError as any).status === 401) ||
+			(marketError !== null && (marketError as any).status === 401)
 		) {
 			window.alert("Session expired. Please log in again.");
 			signout();
 		}
 	}
+	useEffect(() => {
+		refetchAmm();
+		refetchHedge();
+		refetchInception();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedIndex]);
+	// console.log(marketData);
 
+	console.log(selectedIndex);
 	const {
 		amm_trackers,
 		hedge_pnl,
@@ -223,12 +234,14 @@ export function RebalanceSummary() {
 				<h1 className="text-2xl font-bold text-gray-900">Hedging Summary</h1>
 				<Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
 					<SelectTrigger className="w-48">
-						<SelectValue placeholder="Select Platform" />
+						<SelectValue placeholder={marketValue[selectedIndex]} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="position">Position</SelectItem>
-						<SelectItem value="reya">Reya</SelectItem>
-						<SelectItem value="hyperliquid">Hyperliquid</SelectItem>
+						{marketValue.map((key, index) => (
+							<SelectItem key={key} value={key}>
+								{key}
+							</SelectItem>
+						))}
 					</SelectContent>
 				</Select>
 			</div> */}

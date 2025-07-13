@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +38,7 @@ import { MarketData } from "./MarketData";
 import { TablePage } from "./TablePage";
 import { AmmUniqueTablePage } from "./AmmUniqueTablePage";
 import { useHedgePnl } from "@/hooks/useHedgePnl";
+import { useMarketList } from "@/hooks/useMarketList";
 
 interface SalesData {
 	id: string;
@@ -190,15 +191,24 @@ export function Dashboard() {
 	const renderContent = () => {
 		switch (activeTab) {
 			case "hedging-summary":
-				return <RebalanceSummary />;
+				return <RebalanceSummary selectedIndex={selectedIndex} />;
 			case "hedging-position":
-				return <TablePage />;
+				return <TablePage selectedIndex={selectedIndex} />;
 			case "ammunique-position":
-				return <AmmUniqueTablePage />;
+				return <AmmUniqueTablePage selectedIndex={selectedIndex} />;
 			default:
-				return <RebalanceSummary />;
+				return <RebalanceSummary selectedIndex={selectedIndex} />;
 		}
 	};
+	const [marketValue, setMarketValue] = useState<string[]>([]);
+	const [selectedIndex, setSelectedIndex] = useState<number>(0);
+	const [selectedPlatform, setSelectedPlatform] = useState<number | null>(0);
+	const {
+		data: marketData,
+		isLoading: marketLoading,
+		isError: marketError,
+	} = useMarketList();
+
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
 			{/* Sidebar */}
@@ -232,6 +242,32 @@ export function Dashboard() {
 									Sign Out
 								</Button>
 							</div>
+						</div>
+						<div className="flex items-center justify-between">
+							<h1 className="text-2xl font-bold text-gray-900">{}</h1>
+							<Select
+								value={
+									selectedIndex !== null ? String(selectedIndex) : undefined
+								}
+								onValueChange={(value) => setSelectedIndex(Number(value))}
+							>
+								<SelectTrigger className="w-48">
+									<SelectValue
+										placeholder={
+											selectedIndex !== null
+												? marketData?.data[selectedIndex]?.reya?.market
+												: "Select a platform"
+										}
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									{marketData?.data?.map((item: any, index: number) => (
+										<SelectItem key={index} value={String(index)}>
+											{item.reya.market}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 					</div>
 				</header>
