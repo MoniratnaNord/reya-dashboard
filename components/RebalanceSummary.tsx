@@ -299,7 +299,7 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 								<div className="text-base font-semibold text-gray-900">
 									{!marketError &&
 										!marketLoading &&
-										marketData.data[0].reya.hedgeTotalInvestmentCap}
+										marketData.data[selectedIndex].reya.hedgeTotalInvestmentCap}
 								</div>
 							</Card>
 						</div>
