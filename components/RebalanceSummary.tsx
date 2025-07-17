@@ -313,7 +313,7 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">
-									Total Fees collected
+									Total Fees Paid to HL
 								</div>
 								<div className="text-base font-semibold text-gray-900">
 									{
