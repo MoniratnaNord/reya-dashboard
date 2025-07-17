@@ -93,8 +93,7 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	console.log("feesData component", feesData[marketData.data[selectedIndex].reya.market], marketData.data[selectedIndex].reya.market);
-	console.log(selectedIndex);
+
 	const {
 		amm_trackers,
 		hedge_pnl,
