@@ -14,6 +14,8 @@ interface AuthContextType {
 	signin: (email: string, password: string) => Promise<boolean>;
 	signout: () => void;
 	isLoading: boolean;
+	feesData: any;
+	setFeesData: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState("");
 	const [isLoading, setIsLoading] = useState(true);
+	const [feesData, setFeesData] = useState<any>(null);
 
 	useEffect(() => {
 		// Check for existing session on mount
@@ -68,7 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	return (
-		<AuthContext.Provider value={{ user, signin, signout, isLoading }}>
+		<AuthContext.Provider
+			value={{ user, signin, signout, isLoading, feesData, setFeesData }}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

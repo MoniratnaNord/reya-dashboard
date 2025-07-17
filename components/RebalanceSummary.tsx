@@ -25,6 +25,7 @@ import { useInceptionPnl } from "@/hooks/useInceptionPnl";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert } from "./ui/alert";
 import { useMarketList } from "@/hooks/useMarketList";
+import { useFeesQuery } from "@/hooks/useFeesQuery";
 
 interface RebalanceData {
 	platform: string;
@@ -37,7 +38,8 @@ interface RebalanceData {
 }
 
 export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
-	const { signout } = useAuth();
+	const { signout, feesData } = useAuth();
+	const { mutate: feesMutation } = useFeesQuery();
 	const {
 		data: ammPosition,
 		isLoading: ammLoading,
@@ -83,7 +85,15 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedIndex]);
 	// console.log(marketData);
+	useEffect(() => {
+		if (localStorage.getItem("hasCalledOnceAfterLogin") !== "true") {
+			feesMutation();
+			//   localStorage.setItem("hasCalledOnceAfterLogin", "true");
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
+	console.log("feesData component", feesData[marketData.data[selectedIndex].reya.market], marketData.data[selectedIndex].reya.market);
 	console.log(selectedIndex);
 	const {
 		amm_trackers,
@@ -206,9 +216,9 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 										<div className="text-sm text-gray-600">{key}</div>
 										<div className="text-sm font-semibold text-gray-900">
 											{key.toLowerCase().includes("timestamp") ||
-											key === "created_at" ||
-											key === "start_at" ||
-											key === "end_at"
+												key === "created_at" ||
+												key === "start_at" ||
+												key === "end_at"
 												? new Date(value).toLocaleString()
 												: formatValue(value)}
 										</div>
@@ -246,11 +256,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 				</Select>
 			</div> */}
 			{!isAmmError &&
-			!isHedgeError &&
-			!isInceptionError &&
-			!ammLoading &&
-			!inceptionLoading &&
-			!hedgeLoading ? (
+				!isHedgeError &&
+				!isInceptionError &&
+				!ammLoading &&
+				!inceptionLoading &&
+				!hedgeLoading ? (
 				<div className="">
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Summary
@@ -302,6 +312,16 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 										marketData.data[selectedIndex].reya.hedgeTotalInvestmentCap}
 								</div>
 							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Fees collected
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{
+										feesData !== null &&
+										feesData[marketData.data[selectedIndex].reya.market].toFixed(4)}
+								</div>
+							</Card>
 						</div>
 					)}
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
@@ -338,8 +358,8 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 					)}
 				</div>
 			) : (ammError !== null && (ammError as any).status === 401) ||
-			  (hedgeError !== null && (hedgeError as any).status === 401) ||
-			  (inceptionError !== null && (inceptionError as any).status === 401) ? (
+				(hedgeError !== null && (hedgeError as any).status === 401) ||
+				(inceptionError !== null && (inceptionError as any).status === 401) ? (
 				<div className="flex items-center justify-center">
 					Session expired. Please login again.
 				</div>
