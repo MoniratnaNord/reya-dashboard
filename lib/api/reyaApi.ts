@@ -109,17 +109,17 @@ export const marketList = async (token: string, signOut: () => void) => {
   }
   return res.data;
 };
-export const getHyperliquidFees = async (signOut: () => void) => {
-  const res = await axios.post(
-    `https://api.hyperliquid.xyz/info`,
-    {
-      aggregateByTime: true,
-      type: "userFills",
-      user: "0x726c091873c0EDF2119E7e2D9995e5ffC8c9c002",
-    },
+export const getHyperliquidFees = async (
+  token: string,
+  index: number,
+  signOut: () => void
+) => {
+  const res = await axios.get(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/trade/fees?market_index=${index}`,
     {
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     }
   );

@@ -38,8 +38,9 @@ interface RebalanceData {
 }
 
 export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
-	const { signout, feesData } = useAuth();
-	const { mutate: feesMutation } = useFeesQuery();
+	const { signout } = useAuth();
+	const { data: fees, isLoading: feesLoading, refetch: refetchFees } = useFeesQuery(selectedIndex);
+
 	const {
 		data: ammPosition,
 		isLoading: ammLoading,
@@ -82,16 +83,12 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 		refetchAmm();
 		refetchHedge();
 		refetchInception();
+		refetchFees();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedIndex]);
-	// console.log(marketData);
-	useEffect(() => {
-		if (localStorage.getItem("hasCalledOnceAfterLogin") !== "true") {
-			feesMutation();
-			//   localStorage.setItem("hasCalledOnceAfterLogin", "true");
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+
+
+
 
 
 	const {
@@ -317,8 +314,8 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 								</div>
 								<div className="text-base font-semibold text-gray-900">
 									{
-										feesData !== null &&
-										feesData[marketData.data[selectedIndex].reya.market].toFixed(4)}
+										!feesLoading &&
+										fees.data.total_fees.toFixed(4)}
 								</div>
 							</Card>
 						</div>
