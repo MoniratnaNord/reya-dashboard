@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { hedgingPosition, pnlSinceInception } from "@/lib/api/reyaApi";
+import { hedgingPosition } from "@/lib/api/reyaApi";
 import { useQuery } from "@tanstack/react-query";
 
 export const useHedgingPosition = (

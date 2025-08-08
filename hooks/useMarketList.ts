@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { marketList, pnlSinceInception } from "@/lib/api/reyaApi";
+import { marketList } from "@/lib/api/reyaApi";
 import { useQuery } from "@tanstack/react-query";
 
 export const useMarketList = () => {
