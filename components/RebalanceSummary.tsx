@@ -21,11 +21,13 @@ import {
 } from "lucide-react";
 import { useCurrentAmm } from "@/hooks/useCurrentAmm";
 import { useHedgePnl } from "@/hooks/useHedgePnl";
-import { useInceptionPnl } from "@/hooks/useInceptionPnl";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert } from "./ui/alert";
 import { useMarketList } from "@/hooks/useMarketList";
 import { useFeesQuery } from "@/hooks/useFeesQuery";
+
+import { useHedgeData } from "@/hooks/useHedgeData";
+import { useAmmData } from "@/hooks/useAmmData";
 
 interface RebalanceData {
 	platform: string;
@@ -39,116 +41,44 @@ interface RebalanceData {
 
 export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 	const { signout } = useAuth();
-	const { data: fees, isLoading: feesLoading, refetch: refetchFees } = useFeesQuery(selectedIndex);
 
 	const {
-		data: ammPosition,
-		isLoading: ammLoading,
-		isError: isAmmError,
-		error: ammError,
-		refetch: refetchAmm,
-	} = useCurrentAmm(selectedIndex);
+		data: ammData,
+		isLoading: ammDataLoading,
+		isError: isAmmDataError,
+		error: ammDataError,
+		refetch: refetchAmmData,
+	} = useAmmData(selectedIndex);
 	const {
-		data: hedgePnl,
-		isLoading: hedgeLoading,
-		isError: isHedgeError,
-		error: hedgeError,
-		refetch: refetchHedge,
-	} = useHedgePnl(selectedIndex);
-	const {
-		data: inceptionPnl,
-		isLoading: inceptionLoading,
-		isError: isInceptionError,
-		error: inceptionError,
-		refetch: refetchInception,
-	} = useInceptionPnl(selectedIndex);
-	const {
-		data: marketData,
-		isLoading: marketLoading,
-		isError: marketError,
-	} = useMarketList();
+		data: hedgeData,
+		isLoading: hedgeDataLoading,
+		isError: isHedgeDataError,
+		error: hedgeDataError,
+		refetch: refetchHedgeData,
+	} = useHedgeData(selectedIndex);
 
-	if (isAmmError || isHedgeError || isInceptionError || marketError) {
+	if (isAmmDataError || isHedgeDataError) {
 		if (
-			(ammError !== null && (ammError as any).status === 401) ||
-			(hedgeError !== null && (hedgeError as any).status === 401) ||
-			(inceptionError !== null && (inceptionError as any).status === 401) ||
-			(marketError !== null && (marketError as any).status === 401)
+			(hedgeDataError !== null && (hedgeDataError as any).status === 401) ||
+			(ammDataError !== null && (ammDataError as any).status === 401)
 		) {
 			window.alert("Session expired. Please log in again.");
 			signout();
 		}
 	}
 	useEffect(() => {
-		refetchAmm();
-		refetchHedge();
-		refetchInception();
-		refetchFees();
+		refetchHedgeData();
+		refetchAmmData();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedIndex]);
 
-
-
-
-
-	const {
-		amm_trackers,
-		hedge_pnl,
-		hedge_position_amt_usd,
-		hedge_pnl_percent,
-		hedge_entry_price,
-		hedge_funding_value,
-		amm_realized_pnl,
-		amm_last_price,
-		amm_base,
-		...cleanedAmmData
-	} =
-		!ammError &&
-		!ammLoading &&
-		ammPosition.data !== null &&
-		ammPosition.data !== undefined &&
-		ammPosition.data;
-	const { hyperliquid_last_ticker, amm_current_price, ...cleanedHedgeData } =
-		!hedgeError &&
-		!hedgeLoading &&
-		hedgePnl.data !== null &&
-		hedgePnl.data !== undefined &&
-		hedgePnl.data;
-	const { hl_current_price, unrealized_pnl_by_entries, ...remaining } =
-		cleanedHedgeData;
-
-	const cleanedHedgeDataWithRenamedKey = {
-		...remaining,
-		current_price: hl_current_price, // renamed key
-		unrealized_pnl: unrealized_pnl_by_entries,
-	};
-
 	// cleaned inception data:
-	const { end_at, ...cleanedInceptionData } =
-		!inceptionError &&
-		!inceptionLoading &&
-		inceptionPnl.data !== null &&
-		inceptionPnl.data !== undefined &&
-		inceptionPnl.data;
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case "active":
-				return "bg-green-100 text-green-800";
-			case "pending":
-				return "bg-yellow-100 text-yellow-800";
-			case "completed":
-				return "bg-blue-100 text-blue-800";
-			default:
-				return "bg-gray-100 text-gray-800";
-		}
-	};
-
-	const getAllocationColor = (current: number, target: number) => {
-		const diff = Math.abs(current - target);
-		if (diff <= 1) return "text-green-600";
-		if (diff <= 3) return "text-yellow-600";
-		return "text-red-600";
-	};
+	// const { end_at, ...cleanedInceptionData } =
+	// 	!inceptionError &&
+	// 	!inceptionLoading &&
+	// 	inceptionPnl.data !== null &&
+	// 	inceptionPnl.data !== undefined &&
+	// 	inceptionPnl.data;
 
 	const RenderObject = ({
 		data,
@@ -212,9 +142,9 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 										<div className="text-sm text-gray-600">{key}</div>
 										<div className="text-sm font-semibold text-gray-900">
 											{key.toLowerCase().includes("timestamp") ||
-												key === "created_at" ||
-												key === "start_at" ||
-												key === "end_at"
+											key === "created_at" ||
+											key === "start_at" ||
+											key === "end_at"
 												? new Date(value).toLocaleString()
 												: formatValue(value)}
 										</div>
@@ -236,34 +166,17 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 	};
 	return (
 		<div className="space-y-6">
-			{/* <div className="flex items-center justify-between">
-				<h1 className="text-2xl font-bold text-gray-900">Hedging Summary</h1>
-				<Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
-					<SelectTrigger className="w-48">
-						<SelectValue placeholder={marketValue[selectedIndex]} />
-					</SelectTrigger>
-					<SelectContent>
-						{marketValue.map((key, index) => (
-							<SelectItem key={key} value={key}>
-								{key}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div> */}
-			{!isAmmError &&
-				!isHedgeError &&
-				!isInceptionError &&
-				!ammLoading &&
-				!inceptionLoading &&
-				!hedgeLoading ? (
+			{!isAmmDataError &&
+			!isHedgeDataError &&
+			!ammDataLoading &&
+			!hedgeDataLoading ? (
 				<div className="">
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Summary
 					</h2>
-					{inceptionPnl.data === null || inceptionPnl.data === undefined ? (
+					{(ammData && ammData.data === null) || ammData.data === undefined ? (
 						<div className="flex items-center justify-center">
-							<Loader2 className="animate-spin mr-2" />
+							<Loader2 className="animate-spin mr-2 mt-10" />
 							Data not available yet.
 						</div>
 					) : (
@@ -271,7 +184,79 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">Total Realized PNL</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!inceptionError &&
+									{!ammDataError &&
+										!hedgeDataError &&
+										!ammDataLoading &&
+										!hedgeDataLoading &&
+										(
+											Number(
+												ammData.data.pnl_summary.since_inception.realized_pnl
+											) +
+											Number(hedgeData.data.pnl_summary.realized_pnl_all_time)
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Unrealized PNL
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										(
+											Number(
+												ammData.data.pnl_summary.since_inception.unrealized_pnl
+											) +
+											Number(
+												hedgeData.data.pnl_summary.unrealized_pnl_by_entries
+											)
+										).toFixed(4)}
+								</div>
+							</Card>
+							{/* <Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Investment Cap
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!marketError &&
+										!marketLoading &&
+										marketData.data[selectedIndex].reya.hedgeTotalInvestmentCap}
+								</div>
+							</Card> */}
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Fees Paid to HL
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataLoading &&
+										hedgeData.data.hedge_fees_paid.since_inception.fees.toFixed(
+											4
+										)}
+								</div>
+							</Card>
+						</div>
+					)}
+					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
+						AMM Performance Overview
+						<span className="text-sm text-gray-500">
+							{" "}
+							<br /> Start From:{" "}
+							{new Date(
+								ammData.data.pnl_summary.since_inception.start_at
+							).toLocaleString()}
+						</span>
+					</h2>
+					{ammData.data === null || ammData.data === undefined ? (
+						<div className="flex items-center justify-center">
+							<Loader2 className="animate-spin mr-2" />
+							Data not available yet.
+						</div>
+					) : (
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+							{/* <Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Start From</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammData &&
 										!hedgeError &&
 										!inceptionLoading &&
 										!hedgeLoading &&
@@ -282,40 +267,349 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 											)
 										).toFixed(4)}
 								</div>
+							</Card> */}
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Realized PNL Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(
+											ammData.data.pnl_summary.since_inception.realized_pnl
+										)
+											// +
+											// Number(
+											// 	cleanedHedgeDataWithRenamedKey.realized_pnl_all_time
+											// )
+											.toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Realized PnL 7 Days</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(
+											ammData.data.pnl_summary.last_7_days.data.realized_pnl
+										)
+											//  +
+											// Number(
+											// 	cleanedHedgeDataWithRenamedKey.realized_pnl_all_time
+											// )
+											.toFixed(4)}
+								</div>
+							</Card>
+
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Avg Entry Price Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(ammData.data.pnl_summary.since_inception.avg_price)
+											// +
+											// Number(cleanedHedgeDataWithRenamedKey.unrealized_pnl)
+											.toFixed(4)}
+								</div>
+							</Card>
+
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Current AMM Position
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(
+											ammData.data.pnl_summary.since_inception.current_position
+										)
+											// +
+											// Number(cleanedHedgeDataWithRenamedKey.unrealized_pnl)
+											.toFixed(4)}
+								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">
-									Total Unrealized PNL
+									Current AMM Position (USD)
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!inceptionError &&
-										!hedgeError &&
-										!inceptionLoading &&
-										!hedgeLoading &&
-										(
-											Number(inceptionPnl.data.unrealized_pnl) +
-											Number(cleanedHedgeDataWithRenamedKey.unrealized_pnl)
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.amm_base_in_usd
+										).toFixed(4)}
+								</div>
+							</Card>
+
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Initial Realised PnL Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(
+											ammData.data.pnl_summary.since_inception
+												.since_inception_realized_pnl
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">
-									Total Investment Cap
+									Initial Realised PnL 7 days
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!marketError &&
-										!marketLoading &&
-										marketData.data[selectedIndex].reya.hedgeTotalInvestmentCap}
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(
+											ammData.data.pnl_summary.last_7_days.data
+												.since_inception_realized_pnl
+										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">
-									Total Fees Paid to HL
+									Current Realised PnL
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{
-										!feesLoading &&
-										fees.data.total_fees.toFixed(4)}
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(
+											ammData.data.pnl_summary.since_inception
+												.current_inception_realized_pnl
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Current Unrealised PnL
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(
+											ammData.data.pnl_summary.since_inception.unrealized_pnl
+										).toFixed(4)}
+								</div>
+							</Card>
+
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Unique Positions Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(ammData.data.position_counts.total_unique).toFixed(
+											4
+										)}
+								</div>
+							</Card>
+
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Total Unique Positions 7 days
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!ammDataError &&
+										!ammDataLoading &&
+										Number(ammData.data.position_counts.last_7_days).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">AMM Current Price</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.pnl_summary.amm_current_price
+										).toFixed(4)}
+								</div>
+							</Card>
+						</div>
+					)}
+					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
+						Hedge Performance Overview
+					</h2>
+					{hedgeData.data === null || hedgeData.data === undefined ? (
+						<div className="flex items-center justify-center">
+							<Loader2 className="animate-spin mr-2" />
+							Data not available yet.
+						</div>
+					) : (
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Realized PnL Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.pnl_summary.realized_pnl_all_time
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Realized PnL 7 days</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(hedgeData.data.pnl_summary.realized_pnl_7d).toFixed(
+											4
+										)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Unrealized PnL</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.pnl_summary.unrealized_pnl_by_entries
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Current Hedge Position
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.pnl_summary.hedge_position_amt
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Current Hedge Position (USD)
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.pnl_summary.hedge_position_amt_usd
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Hedge Volume Since Inception (USD)
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.hedge_total_volume_usd.since_inception
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Hedge Volume 7 days (USD)
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.hedge_total_volume_usd.last_7_days
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Hedge Position Count Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(hedgeData.data.hedge_position_counts.total).toFixed(
+											4
+										)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Hedge Position Count 7 days
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.hedge_position_counts.last_7_days
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Hedge Trade Count Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.hedge_fees_paid.since_inception
+												.hedge_tx_count
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Hedge Trade Count 7 days
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.hedge_fees_paid.last_7_days.hedge_tx_count
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Fees paid Since Inception
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.hedge_fees_paid.since_inception.fees
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Fees paid 7 days</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.hedge_fees_paid.last_7_days.fees
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Avg Entry Price</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.pnl_summary.hyperliquid_last_ticker
+												.entry_price
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">HL Current Price</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(hedgeData.data.pnl_summary.hl_current_price).toFixed(
+											4
+										)}
 								</div>
 							</Card>
 						</div>
@@ -323,44 +617,293 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Current AMM Positions
 					</h2>
-					{ammPosition.data === null || ammPosition.data === undefined ? (
+					{hedgeData.data === null || hedgeData.data === undefined ? (
 						<div className="flex items-center justify-center">
+							<Loader2 className="animate-spin mr-2" />
 							Data not available yet.
 						</div>
 					) : (
-						<RenderObject data={!ammLoading && cleanedAmmData} />
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									amm_converted_last_price
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.amm_converted_last_price
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">market</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										hedgeData.data.latest_hedge_trade.market}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">amm_converted_base</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.amm_converted_base
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">amm_last_timestamp</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										new Date(
+											hedgeData.data.latest_hedge_trade.amm_last_timestamp
+										).toLocaleString()}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">hedge_margin_used</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hedge_margin_used
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">amm_base_in_usd</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.amm_base_in_usd
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">hedge_margin_pnl</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hedge_margin_pnl
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">hedge_position_amt</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hedge_position_amt
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									amm_converted_realized_pnl
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade
+												.amm_converted_realized_pnl
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">created_at</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										new Date(
+											hedgeData.data.latest_hedge_trade.created_at
+										).toLocaleString()}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">amm_current_price</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.amm_current_price
+										).toFixed(4)}
+								</div>
+							</Card>
+						</div>
 					)}
+
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
-						Hedge PNL
+						hyperliquid Current Positions
 					</h2>
-					{hedgePnl.data === null || hedgePnl.data === undefined ? (
+					{hedgeData.data === null || hedgeData.data === undefined ? (
 						<div className="flex items-center justify-center">
+							<Loader2 className="animate-spin mr-2" />
 							Data not available yet.
 						</div>
 					) : (
-						<RenderObject
-							data={!hedgeLoading && cleanedHedgeDataWithRenamedKey}
-						/>
-					)}
-					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
-						AMM PNL Since Inception
-					</h2>
-					{inceptionPnl.data === null || inceptionPnl.data === undefined ? (
-						<div className="flex items-center justify-center">
-							Data not available yet.
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">pnl</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.pnl
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">position_amt</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.position_amt
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">position_amt_usd</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid
+												.position_amt_usd
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">position</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										hedgeData.data.latest_hedge_trade.hyperliquid.position}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">pnl_percent</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.pnl_percent
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">entry_price</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.entry_price
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">funding</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.funding
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">balance</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.balance
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">available_balance</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid
+												.available_balance
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">total_margin_used</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid
+												.total_margin_used
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">margin_used</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.margin_used
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">leverage</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid.leverage
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">current_price</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid
+												.current_price
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">total_notional</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.hyperliquid
+												.total_notional
+										).toFixed(4)}
+								</div>
+							</Card>
 						</div>
-					) : (
-						<RenderObject data={!inceptionLoading && cleanedInceptionData} />
 					)}
 				</div>
-			) : (ammError !== null && (ammError as any).status === 401) ||
-				(hedgeError !== null && (hedgeError as any).status === 401) ||
-				(inceptionError !== null && (inceptionError as any).status === 401) ? (
+			) : (ammDataError !== null && (ammDataError as any).status === 401) ||
+			  (hedgeDataError !== null && (hedgeDataError as any).status === 401) ? (
 				<div className="flex items-center justify-center">
 					Session expired. Please login again.
 				</div>
 			) : (
 				<div className="flex items-center justify-center">
+					<Loader2 className="animate-spin mr-2" />
 					Data not yet available.
 				</div>
 			)}

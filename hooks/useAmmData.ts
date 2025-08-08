@@ -1,12 +1,12 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { pnlForHedge } from "@/lib/api/reyaApi";
+import { ammSummary } from "@/lib/api/reyaApi";
 import { useQuery } from "@tanstack/react-query";
 
-export const useHedgePnl = (market_index: number) => {
+export const useAmmData = (market_index: number) => {
 	const { user, signout } = useAuth();
 	return useQuery({
-		queryKey: ["useHedgePnl"],
-		queryFn: () => pnlForHedge(market_index, user || "", signout),
+		queryKey: ["useInceptionPnl"],
+		queryFn: () => ammSummary(market_index, user || "", signout),
 		refetchInterval: 30000,
 		refetchIntervalInBackground: true,
 	});
