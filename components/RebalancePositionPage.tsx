@@ -133,7 +133,7 @@ export function RebalancePositionPage({
 	return (
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
-			<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<div className="w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl xl:max-w-6xl 2xl:max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
 					<CardHeader>
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -150,7 +150,7 @@ export function RebalancePositionPage({
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="rounded-md border overflow-hidden">
+						<div className="rounded-md border overflow-x-auto w-full">
 							<Table>
 								<TableHeader className="bg-gray-50/50">
 									{newPaginatedData.length === 0 ? null : (
@@ -185,7 +185,15 @@ export function RebalancePositionPage({
 																className="text-gray-600 text-xs"
 																key={index}
 															>
-																{formatValue(item[key])}
+																{key === "funding_rate" ||
+																key === "hl_funding_rate" ? (
+																	<>
+																		{formatValue(item[key])} (
+																		{(Number(item[key]) * 24 * 365).toFixed(4)})
+																	</>
+																) : (
+																	formatValue(item[key])
+																)}
 															</TableCell>
 														)
 													)}

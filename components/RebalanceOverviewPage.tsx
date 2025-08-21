@@ -140,13 +140,13 @@ export function RebalanceOverviewPage() {
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Rebalance positions
 					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+					<div>
 						<TableComponent data={rebalanceData.positions} />
 					</div>
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Collaterals
 					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+					<div>
 						<TableComponent data={rebalanceData.collaterals} />
 					</div>
 					{/* {hedgeData.data === null || hedgeData.data === undefined ? (

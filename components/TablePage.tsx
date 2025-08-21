@@ -122,11 +122,11 @@ export function TablePage({ selectedIndex }: { selectedIndex: number }) {
 	}
 	return (
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
-			<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+		<div className="max-w-6xl sm:max-w-xl md:max-w-xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-full min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
+			<div className="max-w-6xl sm:max-w-xl md:max-w-xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
 					<CardHeader>
-						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+						<div className="flex flex-row sm:flex-row sm:items-center justify-between gap-4">
 							<CardTitle className="text-lg font-semibold text-gray-900">
 								Hedge Position
 							</CardTitle>
@@ -164,7 +164,7 @@ export function TablePage({ selectedIndex }: { selectedIndex: number }) {
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="rounded-md border overflow-hidden">
+						<div className="rounded-md border overflow-x-auto w-full">
 							<Table>
 								<TableHeader className="bg-gray-50/50">
 									{paginatedData.length === 0 ? null : (

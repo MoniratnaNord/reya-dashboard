@@ -216,7 +216,7 @@ export function Dashboard() {
 	} = useMarketList();
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
+		<div className="min-h-screen w-full max-w-full flex">
 			{/* Sidebar */}
 			<Sidebar
 				activeTab={activeTab}
