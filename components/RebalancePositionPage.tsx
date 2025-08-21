@@ -19,7 +19,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search, Filter, ArrowUpDown, ChevronDown } from "lucide-react";
+import {
+	Search,
+	Filter,
+	ArrowUpDown,
+	ChevronDown,
+	Loader2,
+} from "lucide-react";
 import { useRebalancePosition } from "@/hooks/useRebalancePosition";
 
 interface SalesData {
@@ -134,82 +140,97 @@ export function RebalancePositionPage({
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
 			<div className="w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl xl:max-w-6xl 2xl:max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-					<CardHeader>
-						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-							<CardTitle className="text-lg font-semibold text-gray-900">
-								Rebalance Positions
-							</CardTitle>
-							<div className="flex flex-col sm:flex-row gap-3">
-								<div className="relative">
-									Rows Count: {!isLoading && data.row_count}
+				{isLoading ? (
+					<div className="flex items-center justify-center">
+						<Loader2 className="animate-spin mr-2" />
+						Data not available yet.
+					</div>
+				) : (
+					<>
+						<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+							<CardHeader>
+								<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+									<CardTitle className="text-lg font-semibold text-gray-900">
+										Rebalance Positions
+									</CardTitle>
+									<div className="flex flex-col sm:flex-row gap-3">
+										<div className="relative">
+											Rows Count: {!isLoading && data.row_count}
+										</div>
+										{/* <div>Limit: {!isLoading && data.limit}</div> */}
+										{/* <div>Limit Crossed: {!isLoading && data.limit_crossed}</div> */}
+									</div>
 								</div>
-								{/* <div>Limit: {!isLoading && data.limit}</div> */}
-								{/* <div>Limit Crossed: {!isLoading && data.limit_crossed}</div> */}
-							</div>
-						</div>
-					</CardHeader>
-					<CardContent>
-						<div className="rounded-md border overflow-x-auto w-full">
-							<Table>
-								<TableHeader className="bg-gray-50/50">
-									{newPaginatedData.length === 0 ? null : (
-										<TableRow>
-											{!isLoading &&
-												Object.keys(newPaginatedData[0]).map((key, index) => (
-													<TableHead
-														key={index}
-														className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
-														onClick={() => handleSort("customer")}
-													>
-														<div className="flex items-center">
-															{key}
-															<ArrowUpDown className="ml-2 h-4 w-4" />
-														</div>
-													</TableHead>
-												))}
-										</TableRow>
-									)}
-								</TableHeader>
-								{newPaginatedData.length === 0 ? null : (
-									<TableBody>
-										{!isLoading &&
-											newPaginatedData.map((item: any, index: any) => (
-												<TableRow
-													key={index}
-													className="hover:bg-gray-50/50 transition-colors"
-												>
-													{Object.keys(newPaginatedData[0] || {}).map(
-														(key, index) => (
-															<TableCell
-																className="text-gray-600 text-xs"
-																key={index}
-															>
-																{key === "funding_rate" ||
-																key === "hl_funding_rate" ? (
-																	<>
-																		{formatValue(item[key])} (
-																		{(Number(item[key]) * 24 * 365).toFixed(4)})
-																	</>
-																) : (
-																	formatValue(item[key])
-																)}
-															</TableCell>
-														)
-													)}
+							</CardHeader>
+							<CardContent>
+								<div className="rounded-md border overflow-x-auto w-full">
+									<Table>
+										<TableHeader className="bg-gray-50/50">
+											{newPaginatedData.length === 0 ? null : (
+												<TableRow>
+													{!isLoading &&
+														Object.keys(newPaginatedData[0]).map(
+															(key, index) => (
+																<TableHead
+																	key={index}
+																	className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
+																	onClick={() => handleSort("customer")}
+																>
+																	<div className="flex items-center">
+																		{key}
+																		<ArrowUpDown className="ml-2 h-4 w-4" />
+																	</div>
+																</TableHead>
+															)
+														)}
 												</TableRow>
-											))}
-									</TableBody>
-								)}
-							</Table>
-							{!isLoading && data.data.length === 0 && (
-								<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-16 py-8">
-									No results found. Try adjusting your filters.
+											)}
+										</TableHeader>
+										{newPaginatedData.length === 0 ? null : (
+											<TableBody>
+												{!isLoading &&
+													newPaginatedData.map((item: any, index: any) => (
+														<TableRow
+															key={index}
+															className="hover:bg-gray-50/50 transition-colors"
+														>
+															{Object.keys(newPaginatedData[0] || {}).map(
+																(key, index) => (
+																	<TableCell
+																		className="text-gray-600 text-xs"
+																		key={index}
+																	>
+																		{key === "funding_rate" ||
+																		key === "hl_funding_rate" ? (
+																			<>
+																				{formatValue(item[key])} (
+																				{(Number(item[key]) * 24 * 365).toFixed(
+																					4
+																				)}
+																				)
+																			</>
+																		) : (
+																			formatValue(item[key])
+																		)}
+																	</TableCell>
+																)
+															)}
+														</TableRow>
+													))}
+											</TableBody>
+										)}
+									</Table>
+									{!isLoading && data.data.length === 0 && (
+										<div className="m-auto px-4 sm:px-6 lg:px-16 py-8">
+											No results found. Try adjusting your filters.
+										</div>
+									)}
 								</div>
-							)}
-						</div>
-					</CardContent>
-				</Card>
+							</CardContent>
+						</Card>
+					</>
+				)}
+
 				<div className="flex justify-between items-center mt-4">
 					<p className="text-sm text-gray-500">
 						Page {currentPage} of{" "}

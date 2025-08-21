@@ -143,8 +143,10 @@ export function AmmUniqueTablePage({
 								<div className="relative">
 									Rows Count: {!isLoading && data.row_count}
 								</div>
-								<div>Limit: {!isLoading && data.limit}</div>
-								<div>Limit Crossed: {!isLoading && data.limit_crossed}</div>
+								<div className="flex flex-row gap-4">
+									<div>Limit: {!isLoading && data.limit}</div>
+									<div>Limit Crossed: {!isLoading && data.limit_crossed}</div>
+								</div>
 							</div>
 						</div>
 					</CardHeader>

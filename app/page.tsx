@@ -16,7 +16,13 @@ function AppContent() {
 		);
 	}
 
-	return user ? <Dashboard /> : <SigninForm />;
+	return user ? (
+		<div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+			<Dashboard />
+		</div>
+	) : (
+		<SigninForm />
+	);
 }
 
 export default function Home() {
