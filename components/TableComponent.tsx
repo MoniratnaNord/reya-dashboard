@@ -34,7 +34,7 @@ interface SalesData {
 	category: string;
 }
 
-export function TablePage({ selectedIndex }: { selectedIndex: number }) {
+export function TableComponent({ data }: { data: any }) {
 	const { user, signout } = useAuth();
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
@@ -43,61 +43,41 @@ export function TablePage({ selectedIndex }: { selectedIndex: number }) {
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [currentPage, setCurrentPage] = useState(1);
 	const rowsPerPage = 10;
-	const { data, isLoading, isError, error, refetch } = useHedgingPosition(
-		selectedIndex,
-		(currentPage - 1) * 10
-	);
-	useEffect(() => {
-		refetch();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedIndex]);
-	if (isError && (error as any).status === 401) {
-		signout();
-	}
+	// const { data, isLoading, isError, error, refetch } = useHedgingPosition(
+	//     selectedIndex,
+	//     (currentPage - 1) * 10
+	// );
+	// useEffect(() => {
+	//     refetch();
+	//     // eslint-disable-next-line react-hooks/exhaustive-deps
+	// }, [selectedIndex]);
+	// if (isError && (error as any).status === 401) {
+	//     signout();
+	// }
 
 	const paginatedData = useMemo(() => {
 		// const end = start + rowsPerPage;
-		if (isLoading || !data.data) return [];
-		if (data.data.length === 0) return [];
-		return data.data.map(
-			({
-				amm_base,
-				amm_realized_pnl,
-				amm_last_price,
-				bsc_funding_rate,
-				market,
-				id,
-				exchange,
-				...rest
-			}: any) => {
-				const formattedRest = { ...rest };
+		if (!data) return [];
+		if (data.length === 0) return [];
+		return data.map(({ conditionalOrdersInfo, ...rest }: any) => {
+			const formattedRest = { ...rest };
 
-				if (formattedRest.reya_funding_rate !== undefined) {
-					const val = formattedRest.reya_funding_rate;
-					formattedRest.reya_funding_rate = Number(val).toFixed(4);
-				}
-				if (formattedRest.created_at !== undefined) {
-					const val = formattedRest.created_at;
-					formattedRest.created_at = new Date(val).toLocaleString();
-				}
-				return formattedRest;
+			if (formattedRest.reya_funding_rate !== undefined) {
+				const val = formattedRest.reya_funding_rate;
+				formattedRest.reya_funding_rate = Number(val).toFixed(4);
 			}
-		);
+			if (formattedRest.created_at !== undefined) {
+				const val = formattedRest.created_at;
+				formattedRest.created_at = new Date(val).toLocaleString();
+			}
+			return formattedRest;
+		});
 
 		// return !isLoading && data.data;
-	}, [data, isLoading]);
+	}, [data]);
 
-	const formattedData = paginatedData.map((item: any) => ({
-		amm_position_size: item.amm_position_size,
-		hedge_position_size: item.hedge_position_size,
-		is_buy: item.is_buy,
-		market_price: item.market_price,
-		avg_price: item.avg_price,
-		reya_funding_rate: item.reya_funding_rate,
-		hl_funding_rate: item.hl_funding_rate,
-		order_id: item.order_id,
-		created_at: item.created_at,
-	}));
+	// const formattedData = paginatedData;
+
 	const handleSort = (field: keyof SalesData) => {
 		if (sortField === field) {
 			setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -122,44 +102,44 @@ export function TablePage({ selectedIndex }: { selectedIndex: number }) {
 	}
 	return (
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
+		<div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
 			<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
 					<CardHeader>
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-							<CardTitle className="text-lg font-semibold text-gray-900">
-								Hedge Position
-							</CardTitle>
+							{/* <CardTitle className="text-lg font-semibold text-gray-900">
+								{title}
+							</CardTitle> */}
 							<div className="flex flex-col sm:flex-row gap-3">
-								<div className="relative">
-									Rows Count: {!isLoading && data.row_count}
-								</div>
+								{/* <div className="relative">
+									Rows Count: {data && data.row_count}
+								</div> */}
 								{/* <Select value={statusFilter} onValueChange={setStatusFilter}>
-									<SelectTrigger className="w-full sm:w-32">
-										<Filter className="w-4 h-4 mr-2" />
-										<SelectValue placeholder="Status" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Status</SelectItem>
-										<SelectItem value="completed">Completed</SelectItem>
-										<SelectItem value="pending">Pending</SelectItem>
-										<SelectItem value="cancelled">Cancelled</SelectItem>
-									</SelectContent>
-								</Select>
-								<Select
-									value={categoryFilter}
-									onValueChange={setCategoryFilter}
-								>
-									<SelectTrigger className="w-full sm:w-36">
-										<ChevronDown className="w-4 h-4 mr-2" />
-										<SelectValue placeholder="Category" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Categories</SelectItem>
-										<SelectItem value="Subscription">Subscription</SelectItem>
-										<SelectItem value="Service">Service</SelectItem>
-									</SelectContent>
-								</Select> */}
+                                    <SelectTrigger className="w-full sm:w-32">
+                                        <Filter className="w-4 h-4 mr-2" />
+                                        <SelectValue placeholder="Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Status</SelectItem>
+                                        <SelectItem value="completed">Completed</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select
+                                    value={categoryFilter}
+                                    onValueChange={setCategoryFilter}
+                                >
+                                    <SelectTrigger className="w-full sm:w-36">
+                                        <ChevronDown className="w-4 h-4 mr-2" />
+                                        <SelectValue placeholder="Category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Categories</SelectItem>
+                                        <SelectItem value="Subscription">Subscription</SelectItem>
+                                        <SelectItem value="Service">Service</SelectItem>
+                                    </SelectContent>
+                                </Select> */}
 							</div>
 						</div>
 					</CardHeader>
@@ -169,8 +149,8 @@ export function TablePage({ selectedIndex }: { selectedIndex: number }) {
 								<TableHeader className="bg-gray-50/50">
 									{paginatedData.length === 0 ? null : (
 										<TableRow>
-											{!isLoading &&
-												Object.keys(formattedData[0]).map((key) => (
+											{data &&
+												Object.keys(paginatedData[0]).map((key) => (
 													<TableHead
 														key={key}
 														className="cursor-pointer hover:bg-gray-100/50 transition-colors text-xs"
@@ -187,43 +167,45 @@ export function TablePage({ selectedIndex }: { selectedIndex: number }) {
 								</TableHeader>
 								{paginatedData.length === 0 ? null : (
 									<TableBody>
-										{!isLoading &&
-											formattedData.map((item: any) => (
+										{data &&
+											paginatedData.map((item: any) => (
 												<TableRow
 													key={item.id}
 													className="hover:bg-gray-50/50 transition-colors"
 												>
-													{Object.keys(formattedData[0]).map((key, index) => (
-														<TableCell
-															className="text-gray-600 text-xs"
-															key={index}
-														>
-															{item[key] === true
-																? "LONG"
-																: item[key] === false
-																? "SHORT"
-																: item[key] === null
-																? "null"
-																: item[key]}
-														</TableCell>
-													))}
+													{Object.keys(paginatedData[0]).map((key, index) => {
+														return (
+															<TableCell
+																className="text-gray-600 text-xs"
+																key={index}
+															>
+																{item[key] === true
+																	? "LONG"
+																	: item[key] === false
+																	? "SHORT"
+																	: item[key] === null
+																	? "null"
+																	: item[key]}
+															</TableCell>
+														);
+													})}
 												</TableRow>
 											))}
 									</TableBody>
 								)}
 							</Table>
-							{!isLoading && data.data.length === 0 && (
-								<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-16 py-8">
+							{data.length === 0 && (
+								<div className="text-center py-8 text-gray-500">
 									No results found. Try adjusting your filters.
 								</div>
 							)}
 						</div>
 					</CardContent>
 				</Card>
-				<div className="flex justify-between items-center mt-4">
+				{/* <div className="flex justify-between items-center mt-4">
 					<p className="text-sm text-gray-500">
 						Page {currentPage} of{" "}
-						{!isLoading && Math.ceil(data.row_count / rowsPerPage)}
+						{data && Math.ceil(data.row_count / rowsPerPage)}
 					</p>
 					<div className="flex gap-2">
 						<button
@@ -241,14 +223,14 @@ export function TablePage({ selectedIndex }: { selectedIndex: number }) {
 							}}
 							disabled={
 								currentPage ===
-								(!isLoading && Math.ceil(data.row_count / rowsPerPage))
+								(data && Math.ceil(data.row_count / rowsPerPage))
 							}
 							className="px-3 py-1 text-sm border rounded disabled:opacity-50"
 						>
 							Next
 						</button>
 					</div>
-				</div>
+				</div> */}
 			</div>
 		</div>
 	);

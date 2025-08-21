@@ -116,6 +116,39 @@ export const ammUniquePositions = async (
 	}
 	return res.data;
 };
+export const rebalancePosition = async (
+	market_index: number = 0,
+	skip: number = 0,
+	token: string,
+	signOut: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/position/rebalance?market_index=${market_index}&skip=${skip}&limit=10`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signOut();
+	}
+	return res.data;
+};
+
+export const rebalanceOverview = async () => {
+	const res = await axios.get(
+		`https://api.reya.xyz/api/accounts/0x9ee2aad770920d985f531882dbb69e81681c8a2f/marginAccount/102621 `,
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+		}
+	);
+
+	return res.data;
+};
 export const marketList = async (token: string, signOut: () => void) => {
 	const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/market`, {
 		headers: {
@@ -145,6 +178,5 @@ export const getHyperliquidFees = async (
 	if (res.status === 401) {
 		signOut();
 	}
-	console.log("feesData", res.data);
 	return res.data;
 };

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { Search, Filter, ArrowUpDown, ChevronDown } from "lucide-react";
-import { useAmmUniquePosition } from "@/hooks/useAmmUniquePosition";
+import { useRebalancePosition } from "@/hooks/useRebalancePosition";
 
 interface SalesData {
 	id: string;
@@ -33,7 +33,7 @@ interface SalesData {
 	category: string;
 }
 
-export function AmmUniqueTablePage({
+export function RebalancePositionPage({
 	selectedIndex,
 }: {
 	selectedIndex: number;
@@ -46,7 +46,7 @@ export function AmmUniqueTablePage({
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [currentPage, setCurrentPage] = useState(1);
 	const rowsPerPage = 10; // you can make this dynamic if needed
-	const { data, isLoading, isError, error, refetch } = useAmmUniquePosition(
+	const { data, isLoading, isError, error, refetch } = useRebalancePosition(
 		selectedIndex,
 		(currentPage - 1) * 10
 	);
@@ -58,21 +58,21 @@ export function AmmUniqueTablePage({
 		signout();
 	}
 	const newPaginatedData = useMemo(() => {
-		if (isLoading || !data.data) return [];
+		if (isLoading || !data) return [];
 		if (data.data.length === 0) return [];
 		return data.data.map(
-			({ amm_base, amm_realized_pnl, amm_last_price, ...rest }: any) => {
+			({ id, amm_base, amm_realized_pnl, amm_last_price, ...rest }: any) => {
 				const formattedRest = { ...rest };
 				if (
 					formattedRest.created_at !== undefined ||
 					formattedRest.amm_last_timestamp !== undefined
 				) {
 					const val = formattedRest.created_at;
-					const timestamp = formattedRest.amm_last_timestamp;
+					// const timestamp = formattedRest.amm_last_timestamp;
 					formattedRest.created_at = new Date(val).toLocaleString();
-					formattedRest.amm_last_timestamp = new Date(
-						timestamp
-					).toLocaleString();
+					// formattedRest.amm_last_timestamp = new Date(
+					// 	timestamp
+					// ).toLocaleString();
 				}
 				return formattedRest;
 			}
@@ -129,6 +129,7 @@ export function AmmUniqueTablePage({
 
 		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 	}
+
 	return (
 		// <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
@@ -137,14 +138,14 @@ export function AmmUniqueTablePage({
 					<CardHeader>
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<CardTitle className="text-lg font-semibold text-gray-900">
-								Amm Position
+								Rebalance Positions
 							</CardTitle>
 							<div className="flex flex-col sm:flex-row gap-3">
 								<div className="relative">
 									Rows Count: {!isLoading && data.row_count}
 								</div>
-								<div>Limit: {!isLoading && data.limit}</div>
-								<div>Limit Crossed: {!isLoading && data.limit_crossed}</div>
+								{/* <div>Limit: {!isLoading && data.limit}</div> */}
+								{/* <div>Limit Crossed: {!isLoading && data.limit_crossed}</div> */}
 							</div>
 						</div>
 					</CardHeader>

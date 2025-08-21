@@ -39,6 +39,8 @@ import { TablePage } from "./TablePage";
 import { AmmUniqueTablePage } from "./AmmUniqueTablePage";
 import { useHedgePnl } from "@/hooks/useHedgePnl";
 import { useMarketList } from "@/hooks/useMarketList";
+import { RebalancePositionPage } from "./RebalancePositionPage";
+import { RebalanceOverviewPage } from "./RebalanceOverviewPage";
 
 interface SalesData {
 	id: string;
@@ -196,6 +198,10 @@ export function Dashboard() {
 				return <TablePage selectedIndex={selectedIndex} />;
 			case "ammunique-position":
 				return <AmmUniqueTablePage selectedIndex={selectedIndex} />;
+			case "rebalance-position":
+				return <RebalancePositionPage selectedIndex={selectedIndex} />;
+			case "rebalance-overview":
+				return <RebalanceOverviewPage />;
 			default:
 				return <RebalanceSummary selectedIndex={selectedIndex} />;
 		}
@@ -244,30 +250,34 @@ export function Dashboard() {
 							</div>
 						</div>
 						<div className="flex items-center justify-between">
-							<h1 className="text-2xl font-bold text-gray-900">{}</h1>
-							<Select
-								value={
-									selectedIndex !== null ? String(selectedIndex) : undefined
-								}
-								onValueChange={(value) => setSelectedIndex(Number(value))}
-							>
-								<SelectTrigger className="w-48">
-									<SelectValue
-										placeholder={
-											selectedIndex !== null
-												? marketData?.data[selectedIndex]?.reya?.market
-												: "Select a platform"
+							{activeTab !== "rebalance-overview" && (
+								<>
+									<h1 className="text-2xl font-bold text-gray-900">{}</h1>
+									<Select
+										value={
+											selectedIndex !== null ? String(selectedIndex) : undefined
 										}
-									/>
-								</SelectTrigger>
-								<SelectContent>
-									{marketData?.data?.map((item: any, index: number) => (
-										<SelectItem key={index} value={String(index)}>
-											{item.reya.market}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+										onValueChange={(value) => setSelectedIndex(Number(value))}
+									>
+										<SelectTrigger className="w-48">
+											<SelectValue
+												placeholder={
+													selectedIndex !== null
+														? marketData?.data[selectedIndex]?.reya?.market
+														: "Select a platform"
+												}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											{marketData?.data?.map((item: any, index: number) => (
+												<SelectItem key={index} value={String(index)}>
+													{item.reya.market}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</>
+							)}
 						</div>
 					</div>
 				</header>

@@ -430,6 +430,83 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							</Card>
 						</div>
 					)}
+
+					{/* Start of Rebalance overview */}
+					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
+						Rebalance Performance Overview
+					</h2>
+					{hedgeData.data === null || hedgeData.data === undefined ? (
+						<div className="flex items-center justify-center">
+							<Loader2 className="animate-spin mr-2" />
+							Data not available yet.
+						</div>
+					) : (
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Entry Price</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.rebalance_entry_price
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">PnL</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.rebalance_pnl
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">PnL Percentage</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.rebalance_pnl_percent
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Position Amount</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade.rebalance_position_amt
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">
+									Position Amount(USD)
+								</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										Number(
+											hedgeData.data.latest_hedge_trade
+												.rebalance_position_amt_usd
+										).toFixed(4)}
+								</div>
+							</Card>
+							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
+								<div className="text-sm text-gray-600">Side</div>
+								<div className="text-base font-semibold text-gray-900">
+									{!hedgeDataError &&
+										!hedgeDataLoading &&
+										hedgeData.data.latest_hedge_trade.rebalance_position_side}
+								</div>
+							</Card>
+						</div>
+					)}
+					{/* End of Rebalance overview */}
+
 					<h2 className="text-lg font-semibold text-gray-700 capitalize py-5">
 						Hedge Performance Overview
 					</h2>
@@ -876,10 +953,9 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 								<div className="text-base font-semibold text-gray-900">
 									{!hedgeDataError &&
 										!hedgeDataLoading &&
-										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid
-												.current_price
-										).toFixed(4)}
+										Number(hedgeData.data.pnl_summary.hl_current_price).toFixed(
+											4
+										)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">

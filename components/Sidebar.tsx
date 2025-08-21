@@ -2,7 +2,14 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { BarChart3, TrendingUp, Menu, TrendingUpDown } from "lucide-react";
+import {
+	BarChart3,
+	TrendingUp,
+	Menu,
+	TrendingUpDown,
+	Table2Icon,
+	Database,
+} from "lucide-react";
 
 interface SidebarProps {
 	activeTab: string;
@@ -32,6 +39,16 @@ export function Sidebar({
 			id: "ammunique-position",
 			label: "Amm Position",
 			icon: TrendingUpDown,
+		},
+		{
+			id: "rebalance-position",
+			label: "Rebalance Position",
+			icon: Table2Icon,
+		},
+		{
+			id: "rebalance-overview",
+			label: "Rebalance Overview",
+			icon: Database,
 		},
 	];
 
@@ -75,7 +92,7 @@ export function Sidebar({
 										"w-full flex items-center px-3 py-3 rounded-lg transition-all duration-200 text-left",
 										isActive
 											? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-											: "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+											: "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
 									)}
 								>
 									<Icon
