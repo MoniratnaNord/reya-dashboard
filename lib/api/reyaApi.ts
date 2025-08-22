@@ -38,6 +38,25 @@ export const ammSummary = async (
 	}
 	return res.data;
 };
+export const fetchAmmPositionCount = async (
+	market_index: number = 0,
+	token: string,
+	signout: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/trade/amm-position-count?market_index=${market_index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signout();
+	}
+	return res.data;
+};
 export const fetchHedgeData = async (
 	market_index: number = 0,
 	token: string,
@@ -45,6 +64,82 @@ export const fetchHedgeData = async (
 ) => {
 	const res = await axios.get(
 		`${process.env.NEXT_PUBLIC_API_URL}/api/trade/hedge-summary?market_index=${market_index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signout();
+	}
+	return res.data;
+};
+export const fetchHedgefees = async (
+	market_index: number = 0,
+	token: string,
+	signout: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/trade/hedge-summary-fees?market_index=${market_index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signout();
+	}
+	return res.data;
+};
+export const fetchHedgeSummaryFirstLast = async (
+	market_index: number = 0,
+	token: string,
+	signout: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/trade/hedge-summary-first-last?market_index=${market_index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signout();
+	}
+	return res.data;
+};
+export const fetchHedgeSummaryVolume = async (
+	market_index: number = 0,
+	token: string,
+	signout: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/trade/hedge-summary-volume?market_index=${market_index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signout();
+	}
+	return res.data;
+};
+export const fetchHedgeSummaryPosition = async (
+	market_index: number = 0,
+	token: string,
+	signout: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/trade/hedge-summary-position-count?market_index=${market_index}`,
 		{
 			headers: {
 				"Content-Type": "application/json",

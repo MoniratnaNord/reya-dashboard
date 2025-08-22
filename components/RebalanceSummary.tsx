@@ -28,6 +28,11 @@ import { useFeesQuery } from "@/hooks/useFeesQuery";
 
 import { useHedgeData } from "@/hooks/useHedgeData";
 import { useAmmData } from "@/hooks/useAmmData";
+import { useHedgeFees } from "@/hooks/useHedgeFees";
+import { useFetchHedgeSummary } from "@/hooks/useFetchHedgeSummary";
+import { useFetchAmmPosition } from "@/hooks/useFetchAmmPosition";
+import { useFetchHedgeSummaryVolume } from "@/hooks/useFetchHedgeSummaryVolume";
+import { useFetchHedgeSummaryPosition } from "@/hooks/useFetchHedgeSummaryPosition";
 
 interface RebalanceData {
 	platform: string;
@@ -56,11 +61,53 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 		error: hedgeDataError,
 		refetch: refetchHedgeData,
 	} = useHedgeData(selectedIndex);
-
+	const {
+		data: hedgeFeesData,
+		isLoading: hedgeFeesLoading,
+		isError: isHedgeFeesError,
+		error: hedgeFeesError,
+		refetch: refetchHedgeFees,
+	} = useHedgeFees(selectedIndex);
+	const {
+		data: hedgeSummaryData,
+		isLoading: hedgeSummaryLoading,
+		isError: isHedgeSummaryError,
+		error: hedgeSummaryError,
+		refetch: refetchHedgeSummary,
+	} = useFetchHedgeSummary(selectedIndex);
+	const {
+		data: hedgeSummaryVolData,
+		isLoading: hedgeSummaryVolLoading,
+		isError: isHedgeSummaryVolError,
+		error: hedgeSummaryVolError,
+		refetch: refetchHedgeSummaryVol,
+	} = useFetchHedgeSummaryVolume(selectedIndex);
+	const {
+		data: hedgeSummaryPosData,
+		isLoading: hedgeSummaryPosLoading,
+		isError: isHedgeSummaryPosError,
+		error: hedgeSummaryPosError,
+		refetch: refetchHedgeSummaryPos,
+	} = useFetchHedgeSummaryPosition(selectedIndex);
+	const {
+		data: ammPositionData,
+		isLoading: ammPositionLoading,
+		isError: isAmmPositionError,
+		error: ammPositionError,
+		refetch: refetchAmmPosition,
+	} = useFetchAmmPosition(selectedIndex);
 	if (isAmmDataError || isHedgeDataError) {
 		if (
 			(hedgeDataError !== null && (hedgeDataError as any).status === 401) ||
-			(ammDataError !== null && (ammDataError as any).status === 401)
+			(ammDataError !== null && (ammDataError as any).status === 401) ||
+			(hedgeFeesError !== null && (hedgeFeesError as any).status === 401) ||
+			(hedgeSummaryError !== null &&
+				(hedgeSummaryError as any).status === 401) ||
+			(ammPositionError !== null && (ammPositionError as any).status === 401) ||
+			(hedgeSummaryVolError !== null &&
+				(hedgeSummaryVolError as any).status === 401) ||
+			(hedgeSummaryPosError !== null &&
+				(hedgeSummaryPosError as any).status === 401)
 		) {
 			window.alert("Session expired. Please log in again.");
 			signout();
@@ -69,6 +116,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 	useEffect(() => {
 		refetchHedgeData();
 		refetchAmmData();
+		refetchHedgeFees();
+		refetchHedgeSummary();
+		refetchAmmPosition();
+		refetchHedgeSummaryVol();
+		refetchHedgeSummaryPos();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedIndex]);
 
@@ -228,8 +280,8 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Total Fees Paid to HL
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataLoading &&
-										hedgeData.data.hedge_fees_paid.since_inception.fees.toFixed(
+									{!hedgeFeesLoading &&
+										hedgeFeesData.data.hedge_fees_paid.since_inception.fees.toFixed(
 											4
 										)}
 								</div>
@@ -335,10 +387,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Current AMM Position (USD)
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.amm_base_in_usd
+											hedgeSummaryData.data.latest_hedge_trade.amm_base_in_usd
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -400,11 +452,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Total Unique Positions Since Inception
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!ammDataError &&
-										!ammDataLoading &&
-										Number(ammData.data.position_counts.total_unique).toFixed(
-											4
-										)}
+									{!ammPositionError &&
+										!ammPositionLoading &&
+										Number(
+											ammPositionData.data.position_counts.total_unique
+										).toFixed(4)}
 								</div>
 							</Card>
 
@@ -413,9 +465,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Total Unique Positions 7 days
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!ammDataError &&
-										!ammDataLoading &&
-										Number(ammData.data.position_counts.last_7_days).toFixed(4)}
+									{!ammPositionError &&
+										!ammPositionLoading &&
+										Number(
+											ammPositionData.data.position_counts.last_7_days
+										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
@@ -445,40 +499,43 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">Entry Price</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.rebalance_entry_price
+											hedgeSummaryData.data.latest_hedge_trade
+												.rebalance_entry_price
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">PnL</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.rebalance_pnl
+											hedgeSummaryData.data.latest_hedge_trade.rebalance_pnl
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">PnL Percentage</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.rebalance_pnl_percent
+											hedgeSummaryData.data.latest_hedge_trade
+												.rebalance_pnl_percent
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">Position Amount</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.rebalance_position_amt
+											hedgeSummaryData.data.latest_hedge_trade
+												.rebalance_position_amt
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -487,10 +544,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Position Amount(USD)
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade
+											hedgeSummaryData.data.latest_hedge_trade
 												.rebalance_position_amt_usd
 										).toFixed(4)}
 								</div>
@@ -498,9 +555,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">Side</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
-										hedgeData.data.latest_hedge_trade.rebalance_position_side}
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
+										hedgeSummaryData.data.latest_hedge_trade
+											.rebalance_position_side}
 								</div>
 							</Card>
 						</div>
@@ -578,10 +636,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Hedge Volume Since Inception (USD)
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryVolError &&
+										!hedgeSummaryVolLoading &&
 										Number(
-											hedgeData.data.hedge_total_volume_usd.since_inception
+											hedgeSummaryVolData.data.hedge_total_volume_usd
+												.since_inception
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -590,10 +649,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Hedge Volume 7 days (USD)
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryVolError &&
+										!hedgeSummaryVolLoading &&
 										Number(
-											hedgeData.data.hedge_total_volume_usd.last_7_days
+											hedgeSummaryVolData.data.hedge_total_volume_usd
+												.last_7_days
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -602,11 +662,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Hedge Position Count Since Inception
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
-										Number(hedgeData.data.hedge_position_counts.total).toFixed(
-											4
-										)}
+									{!hedgeSummaryPosError &&
+										!hedgeSummaryPosLoading &&
+										Number(
+											hedgeSummaryPosData.data.hedge_position_counts.total
+										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
@@ -614,10 +674,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Hedge Position Count 7 days
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryPosError &&
+										!hedgeSummaryPosLoading &&
 										Number(
-											hedgeData.data.hedge_position_counts.last_7_days
+											hedgeSummaryPosData.data.hedge_position_counts.last_7_days
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -626,10 +686,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Hedge Trade Count Since Inception
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeFeesError &&
+										!hedgeFeesLoading &&
 										Number(
-											hedgeData.data.hedge_fees_paid.since_inception
+											hedgeFeesData.data.hedge_fees_paid.since_inception
 												.hedge_tx_count
 										).toFixed(4)}
 								</div>
@@ -639,10 +699,11 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Hedge Trade Count 7 days
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeFeesError &&
+										!hedgeFeesLoading &&
 										Number(
-											hedgeData.data.hedge_fees_paid.last_7_days.hedge_tx_count
+											hedgeFeesData.data.hedge_fees_paid.last_7_days
+												.hedge_tx_count
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -651,20 +712,20 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									Fees paid Since Inception
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeFeesError &&
+										!hedgeFeesLoading &&
 										Number(
-											hedgeData.data.hedge_fees_paid.since_inception.fees
+											hedgeFeesData.data.hedge_fees_paid.since_inception.fees
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">Fees paid 7 days</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeFeesError &&
+										!hedgeFeesLoading &&
 										Number(
-											hedgeData.data.hedge_fees_paid.last_7_days.fees
+											hedgeFeesData.data.hedge_fees_paid.last_7_days.fees
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -706,78 +767,81 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									amm_converted_last_price
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.amm_converted_last_price
+											hedgeSummaryData.data.latest_hedge_trade
+												.amm_converted_last_price
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">market</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
-										hedgeData.data.latest_hedge_trade.market}
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
+										hedgeSummaryData.data.latest_hedge_trade.market}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">amm_converted_base</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.amm_converted_base
+											hedgeSummaryData.data.latest_hedge_trade
+												.amm_converted_base
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">amm_last_timestamp</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										new Date(
-											hedgeData.data.latest_hedge_trade.amm_last_timestamp
+											hedgeSummaryData.data.latest_hedge_trade.amm_last_timestamp
 										).toLocaleString()}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">hedge_margin_used</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hedge_margin_used
+											hedgeSummaryData.data.latest_hedge_trade.hedge_margin_used
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">amm_base_in_usd</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.amm_base_in_usd
+											hedgeSummaryData.data.latest_hedge_trade.amm_base_in_usd
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">hedge_margin_pnl</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hedge_margin_pnl
+											hedgeSummaryData.data.latest_hedge_trade.hedge_margin_pnl
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">hedge_position_amt</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hedge_position_amt
+											hedgeSummaryData.data.latest_hedge_trade
+												.hedge_position_amt
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -786,10 +850,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									amm_converted_realized_pnl
 								</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade
+											hedgeSummaryData.data.latest_hedge_trade
 												.amm_converted_realized_pnl
 										).toFixed(4)}
 								</div>
@@ -797,20 +861,20 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">created_at</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										new Date(
-											hedgeData.data.latest_hedge_trade.created_at
+											hedgeSummaryData.data.latest_hedge_trade.created_at
 										).toLocaleString()}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">amm_current_price</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.amm_current_price
+											hedgeSummaryData.data.latest_hedge_trade.amm_current_price
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -830,30 +894,31 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">pnl</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.pnl
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid.pnl
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">position_amt</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.position_amt
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+												.position_amt
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">position_amt_usd</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
 												.position_amt_usd
 										).toFixed(4)}
 								</div>
@@ -861,58 +926,63 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">position</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
-										hedgeData.data.latest_hedge_trade.hyperliquid.position}
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
+										hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+											.position}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">pnl_percent</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.pnl_percent
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+												.pnl_percent
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">entry_price</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.entry_price
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+												.entry_price
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">funding</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.funding
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+												.funding
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">balance</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.balance
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+												.balance
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">available_balance</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
 												.available_balance
 										).toFixed(4)}
 								</div>
@@ -920,10 +990,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">total_margin_used</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
 												.total_margin_used
 										).toFixed(4)}
 								</div>
@@ -931,20 +1001,22 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">margin_used</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.margin_used
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+												.margin_used
 										).toFixed(4)}
 								</div>
 							</Card>
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">leverage</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid.leverage
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
+												.leverage
 										).toFixed(4)}
 								</div>
 							</Card>
@@ -961,10 +1033,10 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 							<Card className="flex flex-row items-center justify-between bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200 p-4">
 								<div className="text-sm text-gray-600">total_notional</div>
 								<div className="text-base font-semibold text-gray-900">
-									{!hedgeDataError &&
-										!hedgeDataLoading &&
+									{!hedgeSummaryError &&
+										!hedgeSummaryLoading &&
 										Number(
-											hedgeData.data.latest_hedge_trade.hyperliquid
+											hedgeSummaryData.data.latest_hedge_trade.hyperliquid
 												.total_notional
 										).toFixed(4)}
 								</div>
