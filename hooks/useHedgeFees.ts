@@ -7,7 +7,7 @@ export const useHedgeFees = (market_index: number) => {
 	return useQuery({
 		queryKey: ["useHedgeFees"],
 		queryFn: () => fetchHedgefees(market_index, user || "", signout),
-		refetchInterval: 30000,
+		refetchInterval: 900000,
 		refetchIntervalInBackground: true,
 	});
 };

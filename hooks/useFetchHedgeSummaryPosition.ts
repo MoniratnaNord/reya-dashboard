@@ -7,7 +7,7 @@ export const useFetchHedgeSummaryPosition = (market_index: number) => {
 	return useQuery({
 		queryKey: ["useFetchHedgeSummaryPosition"],
 		queryFn: () => fetchHedgeSummaryPosition(market_index, user || "", signout),
-		refetchInterval: 30000,
+		refetchInterval: 900000,
 		refetchIntervalInBackground: true,
 	});
 };

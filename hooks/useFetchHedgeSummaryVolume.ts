@@ -7,7 +7,7 @@ export const useFetchHedgeSummaryVolume = (market_index: number) => {
 	return useQuery({
 		queryKey: ["useFetchHedgeSummaryVolume"],
 		queryFn: () => fetchHedgeSummaryVolume(market_index, user || "", signout),
-		refetchInterval: 30000,
+		refetchInterval: 900000,
 		refetchIntervalInBackground: true,
 	});
 };

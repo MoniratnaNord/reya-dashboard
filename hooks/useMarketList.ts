@@ -7,5 +7,6 @@ export const useMarketList = () => {
 	return useQuery({
 		queryKey: ["useMarketList"],
 		queryFn: () => marketList(user || "", signout),
+		refetchOnMount: false,
 	});
 };
