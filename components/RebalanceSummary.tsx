@@ -342,9 +342,7 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 								<div className="text-base font-semibold text-gray-900">
 									{!ammDataError &&
 										!ammDataLoading &&
-										Number(
-											ammData.data.pnl_summary.last_7_days.data.realized_pnl
-										)
+										Number(ammData.data.pnl_summary.last_7_days.realized_pnl)
 											//  +
 											// Number(
 											// 	cleanedHedgeDataWithRenamedKey.realized_pnl_all_time
@@ -416,7 +414,7 @@ export function RebalanceSummary({ selectedIndex }: { selectedIndex: number }) {
 									{!ammDataError &&
 										!ammDataLoading &&
 										Number(
-											ammData.data.pnl_summary.last_7_days.data
+											ammData.data.pnl_summary.last_7_days
 												.since_inception_realized_pnl
 										).toFixed(4)}
 								</div>
