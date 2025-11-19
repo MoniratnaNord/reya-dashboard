@@ -133,13 +133,6 @@ export default function VisualizationPage({
 		error: avgAmmTwoError,
 	} = useAvgAmm(selectedIndex, 120);
 	const {
-		data: ammData,
-		isLoading: ammDataLoading,
-		isError: isAmmDataError,
-		error: ammDataError,
-		refetch: refetchAmmData,
-	} = useAmmData(selectedIndex);
-	const {
 		data: ammHedgeData,
 		isLoading: ammHedgeDataLoading,
 		isError: isAmmHedgeDataError,
@@ -147,54 +140,14 @@ export default function VisualizationPage({
 		refetch: refetchAmmHedgeData,
 	} = useAmmHedge(selectedIndex, tradeHistoryMinutes);
 	const {
-		data: hedgeData,
-		isLoading: hedgeDataLoading,
-		isError: isHedgeDataError,
-		error: hedgeDataError,
-		refetch: refetchHedgeData,
-	} = useHedgeData(selectedIndex);
-	const {
 		data: hedgeSummaryData,
 		isLoading: hedgeSummaryLoading,
 		isError: isHedgeSummaryError,
 		error: hedgeSummaryError,
 		refetch: refetchHedgeSummary,
-	} = useFetchHedgeSummary(selectedIndex);
-	console.log("tradeHistory", tradeHistory);
-	// const fetchData = async () => {
-	// 	setLoading(true);
-	// 	setError(null);
-	// 	const since = isoAgo(windowMinutes);
-	// 	try {
-
-	// 		const [hpRes, hhRes] = await Promise.all([
-
-	// 			fetch(
-	// 				`/api/hyper_hedge_positions_history?since=${encodeURIComponent(
-	// 					since
-	// 				)}`
-	// 			),
-	// 		]);
-	// 		if (!hpRes.ok || !hhRes.ok) {
-	// 			throw new Error("One or more requests failed");
-	// 		}
-	// 		const hpJson = await hpRes.json();
-	// 		const hhJson = await hhRes.json();
-	// 		setHedgePositions(hpJson || []);
-	// 		setHyperHistory(hhJson || []);
-	// 	} catch (err) {
-	// 		console.error(err);
-	// 		setError(err.message || "Failed to load data");
-	// 	} finally {
-	// 		setLoading(false);
-	// 	}
-	// };
+	} = useFetchHedgeSummary(selectedIndex, 0);
 
 	useEffect(() => {
-		// fetchData();
-		// optional: refresh every 30s
-		// const id = setInterval(fetchData, 30_000);
-		// return () => clearInterval(id);
 		if (!tradeLoading && !orderLoading) {
 			setHedgePositions(orderHistory.data);
 			setOrderPositions(tradeHistory.data);
@@ -336,28 +289,29 @@ export default function VisualizationPage({
 				<section className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
 					<Panel title={`Current Hedge Position`}>
 						<div className="text-lg font-semibold">
-							{!hedgeDataError &&
-								!hedgeDataLoading &&
-								Number(hedgeData.data.pnl_summary.hedge_position_amt).toFixed(
-									4
-								)}
+							{!hedgeSummaryError &&
+								!hedgeSummaryLoading &&
+								Number(
+									hedgeSummaryData.data.latest_hedge_trade.hedge_position_amt
+								).toFixed(4)}
 						</div>
 					</Panel>
 					<Panel title={`Current Hedge Position(USD)`}>
 						<div className="text-lg font-semibold">
-							{!hedgeDataError &&
-								!hedgeDataLoading &&
+							{!hedgeSummaryError &&
+								!hedgeSummaryLoading &&
 								Number(
-									hedgeData.data.pnl_summary.hedge_position_amt_usd
+									hedgeSummaryData.data.latest_hedge_trade
+										.hedge_position_amt_usd
 								).toFixed(4)}
 						</div>
 					</Panel>
 					<Panel title={`Current AMM Position`}>
 						<div className="text-lg font-semibold">
-							{!ammDataError &&
-								!ammDataLoading &&
+							{!hedgeSummaryError &&
+								!hedgeSummaryLoading &&
 								Number(
-									ammData.data.pnl_summary.since_inception.current_position
+									hedgeSummaryData.data.latest_hedge_trade.amm_converted_base
 								).toFixed(4)}
 						</div>
 					</Panel>

@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { getTradeHistory, hedgingPosition } from "@/lib/api/reyaApi";
+import { getTradeHistory } from "@/lib/api/reyaApi";
 import { useQuery } from "@tanstack/react-query";
 
 export const useTradeHistory = (market_index: number = 0, time: number) => {
