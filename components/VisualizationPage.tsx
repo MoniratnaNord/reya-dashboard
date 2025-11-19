@@ -1,5 +1,9 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useAmmData } from "@/hooks/useAmmData";
+import { useAmmHedge } from "@/hooks/useAmmHedge";
 import { useAvgAmm } from "@/hooks/useAvgAmm";
+import { useFetchHedgeSummary } from "@/hooks/useFetchHedgeSummary";
+import { useHedgeData } from "@/hooks/useHedgeData";
 import { useHedgingPosition } from "@/hooks/useHedgingPosition";
 import { useOrderHistory } from "@/hooks/useOrderHistory";
 import { useTradeHistory } from "@/hooks/useTradeHistory";
@@ -69,6 +73,20 @@ function prepareTimeseriesForFee(positions: any) {
 				new Date(a.time).getTime() - new Date(b.time).getTime()
 		);
 }
+function prepareTimeseriesForAmmHedge(positions: any) {
+	// Normalize and return sorted by created_at
+	return positions
+		.map((r: any) => ({
+			time: r.created_at,
+			timeLabel: toLocalTime(r.created_at),
+			amm: Number(r.amm_converted_base || 0),
+			hedge: Number(r.hedge_position_amt || 0),
+		}))
+		.sort(
+			(a: { time: string }, b: { time: string }) =>
+				new Date(a.time).getTime() - new Date(b.time).getTime()
+		);
+}
 interface VisualizationPageProps {
 	initialWindowMinutes?: number;
 	selectedIndex?: any; // Replace 'any' with a more specific type if possible
@@ -114,6 +132,34 @@ export default function VisualizationPage({
 		isLoading: avgAmmTwoLoading,
 		error: avgAmmTwoError,
 	} = useAvgAmm(selectedIndex, 120);
+	const {
+		data: ammData,
+		isLoading: ammDataLoading,
+		isError: isAmmDataError,
+		error: ammDataError,
+		refetch: refetchAmmData,
+	} = useAmmData(selectedIndex);
+	const {
+		data: ammHedgeData,
+		isLoading: ammHedgeDataLoading,
+		isError: isAmmHedgeDataError,
+		error: ammHedgeDataError,
+		refetch: refetchAmmHedgeData,
+	} = useAmmHedge(selectedIndex, tradeHistoryMinutes);
+	const {
+		data: hedgeData,
+		isLoading: hedgeDataLoading,
+		isError: isHedgeDataError,
+		error: hedgeDataError,
+		refetch: refetchHedgeData,
+	} = useHedgeData(selectedIndex);
+	const {
+		data: hedgeSummaryData,
+		isLoading: hedgeSummaryLoading,
+		isError: isHedgeSummaryError,
+		error: hedgeSummaryError,
+		refetch: refetchHedgeSummary,
+	} = useFetchHedgeSummary(selectedIndex);
 	console.log("tradeHistory", tradeHistory);
 	// const fetchData = async () => {
 	// 	setLoading(true);
@@ -163,6 +209,11 @@ export default function VisualizationPage({
 	const timeseriesFee = useMemo(
 		() => prepareTimeseriesForFee(orderPositions),
 		[orderPositions]
+	);
+	const timeseriesAmmHedge = useMemo(
+		() =>
+			prepareTimeseriesForAmmHedge((ammHedgeData && ammHedgeData.data) || []),
+		[ammHedgeData]
 	);
 
 	const hedgeTradesCount = useMemo(
@@ -257,6 +308,15 @@ export default function VisualizationPage({
 			fee: d.fee,
 		}));
 	}, [timeseriesFee]);
+	const chartDataAmmHedge = useMemo(() => {
+		// map to [{timeLabel, amm, hedge, fill_size}]
+		return timeseriesAmmHedge.map((d: any) => ({
+			name: d.timeLabel,
+			amm: d.amm,
+			hedge: d.hedge,
+			// fill: d.fill_size,
+		}));
+	}, [timeseriesAmmHedge]);
 	useEffect(() => {
 		if (
 			(tradeSummaryError !== null &&
@@ -270,6 +330,47 @@ export default function VisualizationPage({
 	return (
 		<div className="p-4 min-h-screen bg-gray-50 text-sm">
 			<div className="max-w-7xl mx-auto">
+				<header className="mb-4">
+					<h1 className="text-2xl font-semibold">Current Positions</h1>
+				</header>
+				<section className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+					<Panel title={`Current Hedge Position`}>
+						<div className="text-lg font-semibold">
+							{!hedgeDataError &&
+								!hedgeDataLoading &&
+								Number(hedgeData.data.pnl_summary.hedge_position_amt).toFixed(
+									4
+								)}
+						</div>
+					</Panel>
+					<Panel title={`Current Hedge Position(USD)`}>
+						<div className="text-lg font-semibold">
+							{!hedgeDataError &&
+								!hedgeDataLoading &&
+								Number(
+									hedgeData.data.pnl_summary.hedge_position_amt_usd
+								).toFixed(4)}
+						</div>
+					</Panel>
+					<Panel title={`Current AMM Position`}>
+						<div className="text-lg font-semibold">
+							{!ammDataError &&
+								!ammDataLoading &&
+								Number(
+									ammData.data.pnl_summary.since_inception.current_position
+								).toFixed(4)}
+						</div>
+					</Panel>
+					<Panel title={`Current AMM Position (USD)`}>
+						<div className="text-lg font-semibold">
+							{!hedgeSummaryError &&
+								!hedgeSummaryLoading &&
+								Number(
+									hedgeSummaryData.data.latest_hedge_trade.amm_base_in_usd
+								).toFixed(4)}
+						</div>
+					</Panel>
+				</section>
 				<header className="mb-4">
 					<h1 className="text-2xl font-semibold">AMM Hedging Monitoring</h1>
 					<p className="text-gray-600">
@@ -296,6 +397,7 @@ export default function VisualizationPage({
 						))}
 					</div>
 				</header>
+
 				<section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 					<Panel title={`Total Hedge Size (${windowMinutes}m)`}>
 						<div className="text-lg font-semibold">
@@ -363,7 +465,16 @@ export default function VisualizationPage({
 							Average hedge size for period (position_size)
 						</div> */}
 					</Panel>
+					<Panel title={`Total Fees`}>
+						<div className="text-lg font-semibold">
+							{(!tradeSummaryLoading &&
+								tradeSummary &&
+								tradeSummary.summary.fee_sum.toFixed(2)) ||
+								0}
+						</div>
+					</Panel>
 				</section>
+
 				<header className="mb-4">
 					<h1 className="text-2xl font-semibold">Hedge History</h1>
 					<p className="text-gray-600">
@@ -398,11 +509,6 @@ export default function VisualizationPage({
 						title={`Hedging Volume (${tradeHistoryMinutes}m)`}
 						value={hedgingVolume.toFixed(2) || 0}
 					/>
-
-					<Card
-						title={`Total Fees (${tradeHistoryMinutes}m)`}
-						value={totalFees.toFixed(4)}
-					/>
 					<Card
 						title={`Avg AMM (${60}m)`}
 						value={(avgAmmDataOne && avgAmmDataOne.data.toFixed(2)) || 0}
@@ -414,7 +520,43 @@ export default function VisualizationPage({
 				</section>
 
 				<section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-					<Panel title="AMM Position vs Hedge Position">
+					<Panel title="AMM vs Hedge">
+						<ResponsiveContainer width="100%" height={320}>
+							<LineChart data={chartDataAmmHedge}>
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis dataKey="name" />
+								<YAxis />
+								<Tooltip />
+								<Legend />
+								<Line
+									type="monotone"
+									dataKey="amm"
+									stroke="#1f93ff"
+									dot={false}
+								/>
+								<Line
+									type="monotone"
+									dataKey="hedge"
+									stroke="#10b981"
+									dot={false}
+								/>
+							</LineChart>
+						</ResponsiveContainer>
+					</Panel>
+					<Panel title="Hedging Volume Over Time">
+						<ResponsiveContainer width="100%" height={320}>
+							<BarChart data={chartData}>
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis dataKey="name" />
+								<YAxis />
+								<Tooltip />
+								<Bar dataKey="hedge" fill="#2563eb" />
+							</BarChart>
+						</ResponsiveContainer>
+					</Panel>
+				</section>
+				<section className="mb-8">
+					<Panel title="Trade History">
 						<ResponsiveContainer width="100%" height={320}>
 							<LineChart data={chartData}>
 								<CartesianGrid strokeDasharray="3 3" />
@@ -447,18 +589,6 @@ export default function VisualizationPage({
 								Avg Hedge (window): <strong>{avgHedge.toFixed(2)}</strong>
 							</div>
 						</div>
-					</Panel>
-
-					<Panel title="Hedging Volume Over Time">
-						<ResponsiveContainer width="100%" height={320}>
-							<BarChart data={chartData}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="name" />
-								<YAxis />
-								<Tooltip />
-								<Bar dataKey="hedge" fill="#2563eb" />
-							</BarChart>
-						</ResponsiveContainer>
 					</Panel>
 				</section>
 

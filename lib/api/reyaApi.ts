@@ -357,3 +357,23 @@ export const getAvgAmm = async (
 	}
 	return res.data;
 };
+export const ammHedge = async (
+	index: number = 0,
+	time: number,
+	token: string,
+	signout: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/amm-hedge-history?minutes=${time}&market_index=${index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signout();
+	}
+	return res.data;
+};
