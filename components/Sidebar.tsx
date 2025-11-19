@@ -26,6 +26,11 @@ export function Sidebar({
 }: SidebarProps) {
 	const menuItems = [
 		{
+			id: "visualization",
+			label: "Visualization",
+			icon: Database,
+		},
+		{
 			id: "hedging-summary",
 			label: "Hedging Summary",
 			icon: BarChart3,

@@ -275,3 +275,85 @@ export const getHyperliquidFees = async (
 	}
 	return res.data;
 };
+
+export const getTradeHistory = async (
+	index: number,
+	time: number,
+	token: string,
+	signOut: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/trade-history?minutes=${time}&market_index=${index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signOut();
+	}
+	return res.data;
+};
+export const getOrderHistory = async (
+	index: number,
+	time: number,
+	token: string,
+	signOut: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/order-history?minutes=${time}&market_index=${index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signOut();
+	}
+	return res.data;
+};
+export const getTradeSummary = async (
+	index: number,
+	time: number,
+	token: string,
+	signOut: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/hedge-trade-summary?minutes=${time}&market_index=${index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signOut();
+	}
+	return res.data;
+};
+
+export const getAvgAmm = async (
+	index: number,
+	time: number,
+	token: string,
+	signOut: () => void
+) => {
+	const res = await axios.get(
+		`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/avg-amm-position?minutes=${time}&market_index=${index}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		}
+	);
+	if (res.status === 401) {
+		signOut();
+	}
+	return res.data;
+};

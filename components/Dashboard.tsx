@@ -41,6 +41,7 @@ import { useHedgePnl } from "@/hooks/useHedgePnl";
 import { useMarketList } from "@/hooks/useMarketList";
 import { RebalancePositionPage } from "./RebalancePositionPage";
 import { RebalanceOverviewPage } from "./RebalanceOverviewPage";
+import VisualizationPage from "./VisualizationPage";
 
 interface SalesData {
 	id: string;
@@ -187,11 +188,13 @@ export function Dashboard() {
 	const pendingOrders = mockData.filter(
 		(item) => item.status === "pending"
 	).length;
-	const [activeTab, setActiveTab] = useState("hedging-summary");
+	const [activeTab, setActiveTab] = useState("visualization");
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
 	const renderContent = () => {
 		switch (activeTab) {
+			case "visualization":
+				return <VisualizationPage selectedIndex={selectedIndex} />;
 			case "hedging-summary":
 				return <RebalanceSummary selectedIndex={selectedIndex} />;
 			case "hedging-position":
