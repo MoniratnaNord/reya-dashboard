@@ -352,7 +352,7 @@ export default function VisualizationPage({
 							Average hedge size for period (position_size)
 						</div> */}
 					</Panel>
-					<Panel title="Total Funding (USD)">
+					<Panel title="Total Trades Count">
 						<div className="text-lg font-semibold">
 							{(!tradeSummaryLoading &&
 								tradeSummary &&
