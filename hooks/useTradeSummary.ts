@@ -7,5 +7,6 @@ export const useTradeSummary = (market_index: number = 0, time: number) => {
 	return useQuery({
 		queryKey: ["useHedgeSummary", market_index, time],
 		queryFn: () => getTradeSummary(market_index, time, user || "", signout),
+		refetchOnWindowFocus: false,
 	});
 };

@@ -7,5 +7,6 @@ export const useTradeHistory = (market_index: number = 0, time: number) => {
 	return useQuery({
 		queryKey: ["useHedgeHistory", market_index, time],
 		queryFn: () => getTradeHistory(market_index, time, user || "", signout),
+		refetchOnWindowFocus: false,
 	});
 };

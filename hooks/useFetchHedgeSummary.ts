@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useFetchHedgeSummary = (
 	market_index: number,
-	refetchInterval: number = 30000
+	refetchInterval: number = 30000,
+	refetch: boolean = true
 ) => {
 	const { user, signout } = useAuth();
 	return useQuery({
@@ -12,6 +13,7 @@ export const useFetchHedgeSummary = (
 		queryFn: () =>
 			fetchHedgeSummaryFirstLast(market_index, user || "", signout),
 		refetchInterval: refetchInterval,
+		refetchOnWindowFocus: refetch,
 		refetchIntervalInBackground: true,
 	});
 };

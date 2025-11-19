@@ -145,7 +145,7 @@ export default function VisualizationPage({
 		isError: isHedgeSummaryError,
 		error: hedgeSummaryError,
 		refetch: refetchHedgeSummary,
-	} = useFetchHedgeSummary(selectedIndex, 0);
+	} = useFetchHedgeSummary(selectedIndex, 0, false);
 
 	useEffect(() => {
 		if (!tradeLoading && !orderLoading) {

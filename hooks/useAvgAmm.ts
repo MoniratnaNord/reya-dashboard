@@ -7,5 +7,6 @@ export const useAvgAmm = (market_index: number = 0, time: number) => {
 	return useQuery({
 		queryKey: ["useAvgAmm", market_index, time],
 		queryFn: () => getAvgAmm(market_index, time, user || "", signout),
+		refetchOnWindowFocus: false,
 	});
 };

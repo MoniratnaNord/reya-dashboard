@@ -7,5 +7,6 @@ export const useAmmHedge = (market_index: number = 0, time: number) => {
 	return useQuery({
 		queryKey: ["useAmmHedge", market_index, time],
 		queryFn: () => ammHedge(market_index, time, user || "", signout),
+		refetchOnWindowFocus: false,
 	});
 };

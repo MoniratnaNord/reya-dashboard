@@ -8,5 +8,6 @@ export const useMarketList = () => {
 		queryKey: ["useMarketList"],
 		queryFn: () => marketList(user || "", signout),
 		refetchOnMount: false,
+		refetchOnWindowFocus: false,
 	});
 };
