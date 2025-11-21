@@ -280,6 +280,50 @@ export default function VisualizationPage({
 			signout();
 		}
 	}, [tradeSummaryError, tradeHistoryError]);
+
+	function CustomTooltip({ active, payload, label }: any) {
+		if (!active || !payload || !payload.length) return null;
+
+		const dataPoint = payload[0].payload || {};
+
+		const amm = Number(dataPoint.amm ?? 0);
+		const hedge = Number(dataPoint.hedge ?? 0);
+
+		// positive → overhedged, negative → unhedged
+		const hedgeDiff = Math.abs(hedge) - Math.abs(amm);
+
+		const format = (v: number) => (Number.isFinite(v) ? v.toFixed(4) : "-");
+
+		return (
+			<div className="bg-white border rounded p-2 text-xs shadow">
+				<div className="font-medium mb-1">{label}</div>
+
+				<div>
+					AMM: <strong>{format(amm)}</strong>
+				</div>
+				<div>
+					Hedge: <strong>{format(hedge)}</strong>
+				</div>
+
+				{hedgeDiff > 0 && (
+					<div className="text-green-600">
+						Overhedged: <strong>+{format(hedgeDiff)}</strong>
+					</div>
+				)}
+
+				{hedgeDiff < 0 && (
+					<div className="text-red-600">
+						Unhedged: <strong>{format(hedgeDiff)}</strong>
+					</div>
+				)}
+
+				{hedgeDiff === 0 && (
+					<div className="text-gray-600">Perfectly Hedged</div>
+				)}
+			</div>
+		);
+	}
+
 	return (
 		<div className="p-4 min-h-screen bg-gray-50 text-sm">
 			<div className="max-w-7xl mx-auto">
@@ -480,7 +524,7 @@ export default function VisualizationPage({
 								<CartesianGrid strokeDasharray="3 3" />
 								<XAxis dataKey="name" />
 								<YAxis />
-								<Tooltip />
+								<Tooltip content={<CustomTooltip />} />
 								<Legend />
 								<Line
 									type="monotone"
